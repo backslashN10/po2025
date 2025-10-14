@@ -4,20 +4,20 @@ import java.util.Random;
 
 public class Lotto {
 	public static void main(String[] args){
-		ArrayList<Integer> user_numbers = new ArrayList<Integer>();
-		for (int i = 0; i<6; i++) {
-			user_numbers.add(Integer.parseInt(args[i]));
-		}
+		long start_time = System.currentTimeMillis();
+		ArrayList<Integer> user_random_numbers = new ArrayList<Integer>();
 		ArrayList<Integer> lottery_numbers = generate_numbers();
-		ArrayList<Integer> common_numbers = (ArrayList<Integer>)lottery_numbers.clone();
-		common_numbers.retainAll(user_numbers);
-		System.out.print("lottery numbers: ");
-		System.out.println(lottery_numbers);
-		System.out.print("user numbers: ");
-		System.out.println(user_numbers);
-		System.out.print("number of matches: ");
-		System.out.println(common_numbers.size());
-	}
+		int counter = 0;
+		while (!user_random_numbers.containsAll(lottery_numbers)) {
+			user_random_numbers = generate_numbers();
+			counter++;
+		}
+		long end_time = System.currentTimeMillis();
+		System.out.println("lottery numbers: " + lottery_numbers);
+		System.out.println("number of generations: " + counter);
+		System.out.println("time elapsed: " + (end_time - start_time) + " ms");
+
+}
 	public static ArrayList<Integer> generate_numbers(){
 		Random rand = new Random();
 		ArrayList<Integer> lottery_numbers = new ArrayList<Integer>();
