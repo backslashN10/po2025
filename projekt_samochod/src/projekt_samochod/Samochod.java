@@ -35,7 +35,23 @@ public class Samochod {
 		}
 	}
 	public void jedzDo(Pozycja pozycja) {
-		this.pozycja = pozycja;
+		this.pozycja.przemiesc(pozycja, getAktPredkosc(), 0.1);
 	}
-	public void jedzOWektor()
+	public double getWaga() {
+		return silnik.getWaga() + skrzyniaBiegow.getWaga();
+	}
+	public double getAktPredkosc() {
+		double predkoscTeoretyczna = silnik.getObroty() * skrzyniaBiegow.getAktPrzelozenie();
+		double aktPredkosc;
+		if (predkoscTeoretyczna > vMax) {
+			aktPredkosc = vMax;
+		}
+		else {
+			aktPredkosc = predkoscTeoretyczna;
+		}
+		return aktPredkosc;
+	}
+	public Pozycja getAktPozycja() {
+		return pozycja;
+	}
 }

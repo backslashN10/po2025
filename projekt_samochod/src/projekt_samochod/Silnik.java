@@ -55,6 +55,8 @@ public class Silnik extends Komponent {
 			System.out.println("Silnik nie jest uruchomiony");
 		}
 	}
-	
+	public double getObroty(){
+		return obroty;
+	}
 }
 
