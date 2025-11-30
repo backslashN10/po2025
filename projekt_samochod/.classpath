@@ -7,5 +7,6 @@
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="/home/wherb/Downloads/openjfx-25.0.1_linux-x64_bin-sdk.zip"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
