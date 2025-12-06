@@ -1,8 +1,8 @@
 package po;
 
 public class Sprzeglo extends Komponent {
-	private int stanSprzegla; // 0 - nie wciśnięte, 100 - w podłodze
-	private int skokSprzegla; // moment od którego sprzęgło pozwala zmieniać biegi
+	private int stanSprzegla;
+	private int skokSprzegla;
 
 	public Sprzeglo(String nazwa, double waga, double cena) {
 		super(nazwa, waga, cena);
@@ -26,5 +26,8 @@ public class Sprzeglo extends Komponent {
 	}
 	public boolean czySprzegloLapie() {
 		return stanSprzegla >= skokSprzegla;
+	}
+	public int getStanSprzegla() {
+		return stanSprzegla;
 	}
 }

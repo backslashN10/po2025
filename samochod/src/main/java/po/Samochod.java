@@ -57,4 +57,21 @@ public class Samochod {
 	public int getNrRejestracyjny() {
 		return nrRejestracji;
 	}
+	public String getModel() {
+		return model;
+	}
+	public boolean getCzyWlaczony() {
+		return czyWlaczony;
+	}
+	public SkrzyniaBiegow getSkrzyniaBiegow() {
+		return skrzyniaBiegow;
+	}
+	public Silnik getSilnik() {
+		return silnik;
+	}
+
+	@Override
+	public String toString() {
+		return model + " (" + nrRejestracji + ")";
+	}
 }

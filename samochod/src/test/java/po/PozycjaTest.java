@@ -15,7 +15,6 @@ public class PozycjaTest {
 
         start.przemiesc(koniec, predkosc, dt);
 
-        // Użyj assertEquals z tolerancją zamiast ==
         assertEquals("X powinno byc rowne -10.0", -10.0, start.getX(), 0.01);
         assertEquals("Y powinno byc rowne 20.0", 20.0, start.getY(), 0.01);
     }

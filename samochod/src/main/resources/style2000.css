@@ -1,0 +1,240 @@
+.root {
+    -fx-font-family: "Comic Sans MS", "Courier New", monospace;
+    -fx-font-size: 12px;
+}
+
+BorderPane {
+    -fx-background-color: linear-gradient(to bottom, #00FFFF 0%, #FF00FF 50%, #FFFF00 100%);
+}
+
+SplitPane {
+    -fx-background-color: transparent;
+}
+
+.left-panel {
+    -fx-background-color: linear-gradient(to right, #FF6B9D 0%, #FFA500 100%);
+    -fx-border-color: #FF0000;
+    -fx-border-width: 3px;
+    -fx-border-style: ridge;
+    -fx-effect: dropshadow(gaussian, #000000, 8, 0.7, 3, 3);
+}
+
+.titled-pane {
+    -fx-background-color: linear-gradient(to bottom, #FFD700 0%, #FF1493 100%);
+    -fx-border-color: #00FF00;
+    -fx-border-width: 2px;
+    -fx-border-style: solid;
+    -fx-effect: dropshadow(gaussian, #FF00FF, 6, 0.6, 2, 2);
+}
+
+.titled-pane > .title {
+    -fx-background-color: linear-gradient(to right, #00CED1 0%, #9370DB 100%);
+    -fx-text-fill: #FFFF00;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-border-color: #FF1493;
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, #000000, 4, 0.8, 1, 1);
+}
+
+.titled-pane > .content {
+    -fx-background-color: linear-gradient(to bottom, #E0FFFF 0%, #FFF0F5 100%);
+    -fx-border-color: #FF69B4;
+    -fx-border-width: 2px;
+}
+
+Label {
+    -fx-text-fill: #000080;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #FFFF00, 2, 0.9, 1, 1);
+}
+
+#carSpeedLabel, #engineRpmLabel, #gearboxGearLabel, #clutchStateLabel {
+    -fx-text-fill: #FF0000;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #00FF00, 3, 1.0, 2, 2);
+    -fx-background-color: #FFFF00;
+    -fx-padding: 4px;
+    -fx-border-color: #FF00FF;
+    -fx-border-width: 2px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+Button {
+    -fx-background-color: linear-gradient(to bottom, #00FF00 0%, #008000 100%);
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-border-color: #FFD700;
+    -fx-border-width: 3px;
+    -fx-border-style: ridge;
+    -fx-padding: 8 12 8 12;
+    -fx-effect: dropshadow(gaussian, #000000, 6, 0.7, 2, 2);
+    -fx-cursor: hand;
+}
+
+Button:hover {
+    -fx-background-color: linear-gradient(to bottom, #FFFF00 0%, #FF8C00 100%);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, #FF00FF, 10, 0.9, 3, 3);
+}
+
+Button:pressed {
+    -fx-background-color: linear-gradient(to top, #FF0000 0%, #8B0000 100%);
+    -fx-translate-y: 2px;
+    -fx-effect: innershadow(gaussian, #000000, 4, 0.5, 0, 2);
+}
+
+#turnOnButton {
+    -fx-background-color: linear-gradient(to bottom, #00FF00 0%, #00AA00 100%);
+    -fx-text-fill: #FFFFFF;
+}
+
+#turnOnButton:hover {
+    -fx-background-color: linear-gradient(to bottom, #00FFFF 0%, #0080FF 100%);
+}
+
+#turnOffButton {
+    -fx-background-color: linear-gradient(to bottom, #FF0000 0%, #AA0000 100%);
+    -fx-text-fill: #FFFF00;
+}
+
+#turnOffButton:hover {
+    -fx-background-color: linear-gradient(to bottom, #FF00FF 0%, #8B008B 100%);
+}
+
+#action1Button, #action2Button {
+    -fx-background-color: linear-gradient(to bottom, #00BFFF 0%, #0080FF 100%);
+    -fx-text-fill: #FFFFFF;
+}
+
+#action1Button:hover, #action2Button:hover {
+    -fx-background-color: linear-gradient(to bottom, #FFD700 0%, #FFA500 100%);
+}
+
+#addCarButton {
+    -fx-background-color: linear-gradient(to bottom, #FF69B4 0%, #FF1493 100%);
+    -fx-text-fill: #FFFF00;
+    -fx-font-size: 11px;
+}
+
+#addCarButton:hover {
+    -fx-background-color: linear-gradient(to bottom, #00FF00 0%, #00CED1 100%);
+}
+
+#modeRadioButton {
+    -fx-text-fill: #000000;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+#modeRadioButton .radio {
+    -fx-background-color: #2a2a2a;
+    -fx-border-color: #000000;
+    -fx-border-width: 3px;
+    -fx-background-radius: 50px;
+    -fx-border-radius: 50px;
+    -fx-min-width: 25px;
+    -fx-min-height: 25px;
+    -fx-max-width: 25px;
+    -fx-max-height: 25px;
+}
+
+#modeRadioButton:selected .radio {
+    -fx-background-color: radial-gradient(center 50% 50%, radius 60%, #00FF00, #00AA00);
+    -fx-effect: dropshadow(gaussian, #00FF00, 12, 1.0, 0, 0);
+}
+
+#modeRadioButton:selected .radio .dot {
+    -fx-background-color: transparent;
+}
+
+#modeRadioButton .radio .dot {
+    -fx-background-color: transparent;
+}
+
+ComboBox {
+    -fx-background-color: linear-gradient(to bottom, #FFD700 0%, #FFA500 100%);
+    -fx-border-color: #FF00FF;
+    -fx-border-width: 3px;
+    -fx-border-style: ridge;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #000000, 5, 0.6, 2, 2);
+}
+
+ComboBox .list-cell {
+    -fx-background-color: #FFF0F5;
+    -fx-text-fill: #000080;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 8 6 8;
+}
+
+ComboBox .list-cell:hover {
+    -fx-background-color: #FFFF00;
+    -fx-text-fill: #FF0000;
+}
+
+ComboBox .list-cell:selected {
+    -fx-background-color: linear-gradient(to right, #00FF00 0%, #00CED1 100%);
+    -fx-text-fill: #FFFFFF;
+}
+
+ComboBox:hover {
+    -fx-background-color: linear-gradient(to bottom, #FFE700 0%, #FFB500 100%);
+    -fx-effect: dropshadow(gaussian, #FF00FF, 8, 0.8, 3, 3);
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #FFF0F5;
+    -fx-border-color: #FF00FF;
+    -fx-border-width: 3px;
+    -fx-border-style: ridge;
+    -fx-effect: dropshadow(gaussian, #000000, 10, 0.7, 0, 5);
+}
+
+ToolBar {
+    -fx-background-color: linear-gradient(to right, #FF1493 0%, #00CED1 50%, #FFD700 100%);
+    -fx-border-color: #FF00FF;
+    -fx-border-width: 3px 0 3px 0;
+    -fx-border-style: dashed;
+    -fx-padding: 8;
+}
+
+#visualizationArea {
+    -fx-background-color:
+        radial-gradient(center 50% 50%, radius 50%, #FFFF00, #FF00FF),
+        linear-gradient(to bottom right, #00FFFF 0%, #FF1493 100%);
+    -fx-border-color: #00FF00;
+    -fx-border-width: 4px;
+    -fx-border-style: groove;
+    -fx-effect: innershadow(gaussian, #FF00FF, 15, 0.5, 0, 0);
+}
+
+Arc {
+    -fx-fill: linear-gradient(to bottom, #FF00FF 0%, #00FFFF 100%);
+    -fx-stroke: #FFFF00;
+    -fx-stroke-width: 4px;
+    -fx-effect: dropshadow(gaussian, #00FF00, 12, 0.9, 0, 0);
+}
+
+HBox {
+    -fx-background-color: transparent;
+}
+
+.titled-pane > .content VBox {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar {
+    -fx-background-color: linear-gradient(to bottom, #FF69B4 0%, #FFD700 100%);
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: linear-gradient(to bottom, #00FF00 0%, #008000 100%);
+    -fx-border-color: #FF00FF;
+    -fx-border-width: 2px;
+}

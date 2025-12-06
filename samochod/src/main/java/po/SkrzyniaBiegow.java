@@ -53,6 +53,8 @@ public class SkrzyniaBiegow extends Komponent {
 	public double getAktPrzelozenie() {
 		return aktualnePrzelozenie;
 	}
-	
+	public Sprzeglo getSprzeglo() {
+		return sprzeglo;
+	}
 
 }
