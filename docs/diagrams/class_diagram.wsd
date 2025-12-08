@@ -1,0 +1,83 @@
+@startuml
+
+enum DeviceStatus {
+  AVAILABLE
+  BROKEN
+  MAINTENANCE
+  IN_USE
+}
+
+enum UserRole {
+  TECHNICIAN
+  CEO
+  ADMIN
+}
+
+
+abstract class User {
+  - int id
+  - String login
+  - String password
+  - UserRole role
+  + login()
+  + logout()
+}
+
+class Technician extends User {
+  + addDevice(BusinessManager, Device)
+  + removeDevice(BusinessManager, Device)
+  + connectDevices(BusinessManager, Device, Device)
+  + changeDeviceConfig(Device)
+}
+
+class CEO extends User {
+  + makeReport(BusinessManager)
+  + viewInventory(BusinessManager)
+}
+
+class Admin extends User {
+  + blockUser(User)
+  + registerUser(User)
+}
+
+abstract class Device{
+  - String model
+  - int numberOfEthInterfaces
+  - List<Device> neighbours
+  - String macAddress
+  - String ipAddress
+  - DeviceStatus status
+  + turnOn()
+  + turnOff()
+}
+
+class Router extends Device{
+  + turnRoutingON(String routingType)
+  + turnRoutingOFF(String routingType)
+}
+
+class SwitchL2 extends Device{
+  + turnSwitchingON()
+  + turnSwitchingOFF()
+}
+
+class AccessPoint extends Device{
+  - String ssid
+  - int band
+  + turnWiFiON()
+  + turnWiFiOFF()
+  + changeWiFiBand(int band)
+}
+
+
+class BusinessManager {
+  - BusinessManager instance
+  - List<Device> inventory
+  - List<User> users
+  + BusinessManager()
+  + getInstance()
+}
+BusinessManager "1" *-- "*" Device
+BusinessManager "1" *-- "*" User
+
+@enduml

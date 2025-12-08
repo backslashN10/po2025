@@ -1,0 +1,45 @@
+@startuml
+left to right direction
+actor "Technik" as User
+actor "CEO" as Emp
+actor "Administrator" as Admin
+
+package "System Zarządzania Sprzętem Sieciowym" {
+
+  usecase "Logowanie" as UC_Login
+
+  usecase "Zmiana konfiguracji urządzeń" as UC_ChangeConfig
+  usecase "Dodanie nowego urządzenia" as UC_AddDevice
+  usecase "Usunięcie urządzenia" as UC_RemoveDevice
+
+  usecase "Tworzenie raportu / inwentaryzacja" as UC_CreateReport
+  usecase "Podgląd bazy urządzeń" as UC_ViewInventory
+
+  usecase "Dodanie nowego użytkownika" as UC_AddUser
+  usecase "Zablokowanie konta" as UC_BlockUser
+}
+
+User --|> UC_Login
+Emp --|> UC_Login
+Admin --|> UC_Login
+
+User --> UC_ChangeConfig
+User --> UC_AddDevice
+User --> UC_RemoveDevice
+
+Emp --> UC_CreateReport
+Emp --> UC_ViewInventory
+
+Admin --> UC_AddUser
+Admin --> UC_BlockUser
+
+' te funkcje wymagają zalogowania
+UC_RemoveDevice ..> UC_Login : <<include>>
+UC_ViewInventory ..> UC_Login : <<include>>
+UC_ChangeConfig ..> UC_Login : <<include>>
+UC_BlockUser ..> UC_Login : <<include>>
+UC_AddDevice ..> UC_Login : <<include>>
+UC_CreateReport ..> UC_Login : <<include>>
+UC_AddUser ..> UC_Login : <<include>>
+
+@enduml
