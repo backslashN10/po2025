@@ -26,6 +26,7 @@ Admin --|> UC_Login
 User --> UC_ChangeConfig
 User --> UC_AddDevice
 User --> UC_RemoveDevice
+User --> UC_ViewInventory
 
 Emp --> UC_CreateReport
 Emp --> UC_ViewInventory
