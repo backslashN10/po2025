@@ -1,11 +1,14 @@
 package po;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 
 public class CarSimulatorController {
 
@@ -106,14 +109,14 @@ public class CarSimulatorController {
                 new double[]{800, 1200, 2000, 3500, 5000, 7000});
         Silnik silnik2 = new Silnik("silnik2", 3500, 50, 8000);
         Pozycja start2 = new Pozycja(0, 0);
-        Samochod auto2 = new Samochod(911, "Porsche 911", 280, skrzynia2, silnik2, start2);
+        Samochod auto2 = new Samochod(420, "Szybki zielony samochod", 280, skrzynia2, silnik2, start2);
 
         Sprzeglo sprzeglo3 = new Sprzeglo("sprzeglo3", 250, 900);
         SkrzyniaBiegow skrzynia3 = new SkrzyniaBiegow("skrzynia3", 120, 280, 6, sprzeglo3,
                 new double[]{800, 1500, 2200, 3200, 4500, 6000, 8000});
         Silnik silnik3 = new Silnik("silnik3", 4200, 60, 9000);
         Pozycja start3 = new Pozycja(0, 0);
-        Samochod auto3 = new Samochod(333, "BMW M3", 250, skrzynia3, silnik3, start3);
+        Samochod auto3 = new Samochod(333, "wolny samochód czerwony", 250, skrzynia3, silnik3, start3);
 
         carSelector.getItems().addAll(auto1, auto2, auto3);
         carSelector.setValue(auto1);
@@ -179,7 +182,7 @@ public class CarSimulatorController {
 
     @FXML
     private void handleZwiekszBieg() {
-        skrzynia.zwiekszBieg();
+        samochod.getSkrzyniaBiegow().zwiekszBieg();
         updateAllLabels();
     }
 
@@ -191,7 +194,17 @@ public class CarSimulatorController {
 
     @FXML
     private void handleAddCar() {
-        System.out.println("Dodawanie nowego auta - funkcjonalnosc do zaimplementowania");
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/NewCar.fxml")
+            );
+            Stage stage = new Stage();
+            stage.setScene(new Scene(loader.load()));
+            stage.setTitle("Dodaj nowy samochód");
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void updateSpeed(double speed) {

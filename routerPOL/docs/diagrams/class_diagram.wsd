@@ -7,6 +7,12 @@ enum DeviceStatus {
   IN_USE
 }
 
+enum DeviceType{
+  ROUTER
+  SWITCH
+  ACCESS_POINT
+}
+
 enum UserRole {
   TECHNICIAN
   CEO
@@ -40,35 +46,42 @@ class Admin extends User {
   + registerUser(User)
 }
 
-abstract class Device{
-  - String model
-  - int numberOfEthInterfaces
-  - List<Device> neighbours
-  - String macAddress
-  - String ipAddress
+class Device {
+  - Long id
+  - DeviceType type
   - DeviceStatus status
-  + turnOn()
-  + turnOff()
+  - String model
+  - String hostName
+  - int numberOfEthInterfaces
+  - String configuration
+  + getId(): Long
+  + getType(): DeviceType
+  + setType(DeviceType type): void
+  + getStatus(): DeviceStatus
+  + setStatus(DeviceStatus status): void
+  + getModel(): String
+  + setModel(String model): void
+  + getHostName(): String
+  + setHostName(String hostName): void
+  + getNumberOfEthInterfaces(): int
+  + setNumberOfEthInterfaces(int number): void
+  + getConfiguration(): String
+  + setConfiguration(String configuration): void
 }
 
-class Router extends Device{
-  + turnRoutingON(String routingType)
-  + turnRoutingOFF(String routingType)
+class DeviceDAO {
+  - static DeviceDAO instance
+  - Connection dbConnection
+  - DeviceDAO()
+  + static getInstance(): DeviceDAO
+  + save(Device device): void
+  + findById(Long id): Device
+  + findAll(): List<Device>
+  + update(Device device): void
+  + deleteById(Long id): void
 }
 
-class SwitchL2 extends Device{
-  + turnSwitchingON()
-  + turnSwitchingOFF()
-}
-
-class AccessPoint extends Device{
-  - String ssid
-  - int band
-  + turnWiFiON()
-  + turnWiFiOFF()
-  + changeWiFiBand(int band)
-}
-
+DeviceDAO ..> Device : uses
 
 class BusinessManager {
   - BusinessManager instance
