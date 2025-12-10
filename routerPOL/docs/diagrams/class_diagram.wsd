@@ -20,30 +20,18 @@ enum UserRole {
 }
 
 
-abstract class User {
-  - int id
+class User {
+  - Long id
   - String login
   - String password
   - UserRole role
-  + login()
-  + logout()
-}
-
-class Technician extends User {
-  + addDevice(BusinessManager, Device)
-  + removeDevice(BusinessManager, Device)
-  + connectDevices(BusinessManager, Device, Device)
-  + changeDeviceConfig(Device)
-}
-
-class CEO extends User {
-  + makeReport(BusinessManager)
-  + viewInventory(BusinessManager)
-}
-
-class Admin extends User {
-  + blockUser(User)
-  + registerUser(User)
+  + getId(): Long
+  + getLogin(): String
+  + setLogin(String login): void
+  + getPassword(): String
+  + setPassword(String password): void
+  + getRole(): UserRole
+  + setRole(UserRole role): void
 }
 
 class Device {
@@ -69,9 +57,16 @@ class Device {
   + setConfiguration(String configuration): void
 }
 
-class DeviceDAO {
+interface DAO<T> {
+  + save(T entity): void
+  + findById(Long id): T
+  + findAll(): List<T>
+  + update(T entity): void
+  + deleteById(Long id): void
+}
+
+class DeviceDAO implements DAO {
   - static DeviceDAO instance
-  - Connection dbConnection
   - DeviceDAO()
   + static getInstance(): DeviceDAO
   + save(Device device): void
@@ -79,18 +74,62 @@ class DeviceDAO {
   + findAll(): List<Device>
   + update(Device device): void
   + deleteById(Long id): void
+  + findByStatus(DeviceStatus status): List<Device>
+  + findByType(DeviceType type): List<Device>
+}
+
+class UserDAO implements DAO {
+  - static UserDAO instance
+  - UserDAO()
+  + static getInstance(): UserDAO
+  + save(User user): void
+  + findById(Long id): User
+  + findAll(): List<User>
+  + update(User user): void
+  + deleteById(Long id): void
+  + findByRole(UserRole role): List<User>
+  + findByLogin(String login): User
 }
 
 DeviceDAO ..> Device : uses
+UserDAO ..> User : uses
+
+class AuthenticationService {
+  - static AuthenticationService instance
+  - User currentUser
+  - AuthenticationService()
+  + static getInstance(): AuthenticationService
+  + login(String login, String password): User
+  + logout(): void
+  + getCurrentUser(): User
+  + isLoggedIn(): boolean
+}
+
+AuthenticationService ..> UserDAO : uses
+AuthenticationService ..> User : uses
 
 class BusinessManager {
-  - BusinessManager instance
-  - List<Device> inventory
-  - List<User> users
-  + BusinessManager()
-  + getInstance()
+  - static BusinessManager instance
+  - BusinessManager()
+  + static getInstance(): BusinessManager
+  + addDevice(User user, Device device): void
+  + removeDevice(User user, Long deviceId): void
+  + connectDevices(User user, Long device1Id, Long device2Id): void
+  + changeDeviceConfig(User user, Long deviceId, String config): void
+  + getAllDevices(User user): List<Device>
+  + getDeviceById(User user, Long id): Device
+  + updateDevice(User user, Device device): void
+  + registerUser(User requestingUser, User newUser): void
+  + blockUser(User requestingUser, Long userId): void
+  + unblockUser(User requestingUser, Long userId): void
+  + getAllUsers(User requestingUser): List<User>
+  + getUserById(User requestingUser, Long id): User
+  + generateReport(User user): String
 }
-BusinessManager "1" *-- "*" Device
-BusinessManager "1" *-- "*" User
+
+BusinessManager ..> DeviceDAO : uses
+BusinessManager ..> UserDAO : uses
+BusinessManager ..> User : uses
+BusinessManager ..> Device : uses
 
 @enduml
