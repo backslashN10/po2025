@@ -29,7 +29,7 @@ public class UserDAO {
     private void createTable(){
         String sql = """
                 CREATE TABLE IF NOT EXISTS users (
-                id serial PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL UNIQUE,
                 password TEXT NOT NULL,
                 role TEXT NOT NULL
