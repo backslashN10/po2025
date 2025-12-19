@@ -15,5 +15,15 @@ public class AuthenticationService{
         }
         return instance;
     }
+    public boolean login(String username, String password){
+        User userLookup = UserDAO.getInstance().findByUsername(username);
+        if (userLookup != null){
+            if (userLookup.getPassword().equals(password)){
+                currentUser = userLookup;
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
