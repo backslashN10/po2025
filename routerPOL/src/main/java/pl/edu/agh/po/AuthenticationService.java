@@ -25,5 +25,8 @@ public class AuthenticationService{
         }
         return false;
     }
+    public void logout(){
+        currentUser = null;
+    }
 }
 

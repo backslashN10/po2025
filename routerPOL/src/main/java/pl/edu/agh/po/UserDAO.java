@@ -56,4 +56,16 @@ public class UserDAO {
         }
         return null;
     }
+    public void save(User user){
+        String sql = "INSERT INTO users ('username', 'password', 'role') VALUES (?, ?, ?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)){
+            pstmt.setString(1, user.getUsername());
+            pstmt.setString(2, user.getPassword());
+            pstmt.setString(3, user.getRole().name());
+            pstmt.execute();
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
 }

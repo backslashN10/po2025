@@ -3,6 +3,7 @@ package pl.edu.agh.po;
 import java.util.Scanner;
 
 public class Main {
+    // for now this class is only for testing purpose
     public static void main(String[] args) {
         AuthenticationService authService = AuthenticationService.getInstance();
         System.out.println("Baza danych zostala zainicjalizowana (plik: rp.db)");
@@ -22,9 +23,9 @@ public class Main {
             boolean success = authService.login(username, password);
 
             if (success) {
-                System.out.println("✓ Logowanie udane! Znaleziono usera: " + username + "\n");
+                System.out.println("Logowanie udane\n");
             } else {
-                System.out.println("✗ Logowanie nieudane! Sprawdz username lub password.\n");
+                System.out.println("Logowanie nieudane.\n");
             }
         }
 
