@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.security.SecureRandom;
 
 public class UserDAO {
     private static UserDAO instance;
@@ -14,12 +15,66 @@ public class UserDAO {
     private UserDAO(){
         try{
             connection = DriverManager.getConnection("jdbc:sqlite:rp.db");
+            //create random admin login password first use
             createTable();
+            createDefaultAdminIfNotExists();
+
+            String sql = "INSERT INTO users ('username', 'password', 'role') VALUES (?, ?, ?)";
+
         }
         catch (SQLException e){
             e.printStackTrace();
         }
     }
+
+
+
+    private void createDefaultAdminIfNotExists() {
+        if (isAdminExists()) {
+            return;
+        }
+
+        String password = generateRandomPassword(12);
+
+        User admin = new User(
+                1L,
+                "admin",
+                password,
+                UserRole.ADMIN
+        );
+
+        save(admin);
+
+        System.out.println("=================================");
+        System.out.println("UTWORZONO KONTO ADMINA");
+        System.out.println("login: admin");
+        System.out.println("hasło: " + password);
+        System.out.println("=================================");
+    }
+
+    private String generateRandomPassword(int length) {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder();
+
+        for (int i = 0; i < length; i++) {
+            password.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return password.toString();
+    }
+
+    private boolean isAdminExists() {
+        String sql = "SELECT 1 FROM users WHERE role = 'ADMIN' LIMIT 1";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
     public static UserDAO getInstance(){
         if (instance == null){
             instance = new UserDAO();
