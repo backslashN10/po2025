@@ -43,6 +43,8 @@ public class UserDAO {
 
         String password = generateRandomPassword(12);
 
+
+
         User admin = new User(
                 1L,
                 "admin",
@@ -51,15 +53,11 @@ public class UserDAO {
         );
 
         save(admin);
-
-        System.out.println("=================================");
-        System.out.println("UTWORZONO KONTO ADMINA");
-        System.out.println("login: admin");
-        System.out.println("hasło: " + password);
-        System.out.println("=================================");
     }
 
-    private String generateRandomPassword(int length) {
+
+
+    public String generateRandomPassword(int length) {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
         SecureRandom random = new SecureRandom();
         StringBuilder password = new StringBuilder();
