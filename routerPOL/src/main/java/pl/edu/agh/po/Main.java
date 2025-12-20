@@ -7,8 +7,21 @@ public class Main {
     public static void main(String[] args) {
         AuthenticationService authService = AuthenticationService.getInstance();
         Utilities utilities = Utilities.getInstance();
-        new Interface().start();
-        utilities.backupDatabase();
+        DeviceDAO deviceDAO = DeviceDAO.getInstance();
+        UserDAO userDAO = UserDAO.getInstance();
+        System.out.println("Baza danych zostala zainicjalizowana (plik: rp.db)");
+
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            System.out.print("Username (lub 'exit' aby wyjsc): ");
+            String username = scanner.nextLine();
+
+            if (username.equalsIgnoreCase("exit")) {
+                break;
+            }
+
+            System.out.print("Password: ");
+            String password = scanner.nextLine();
 
 
 //        Scanner scanner = new Scanner(System.in);
