@@ -1,11 +1,14 @@
 package pl.edu.agh.po;
 
+import org.fusesource.jansi.AnsiConsole;
+import org.postgresql.core.Utils;
+
 import java.util.Scanner;
+
+import static org.fusesource.jansi.Ansi.ansi;
 
 public class Interface
 {
-    AuthenticationService authService = AuthenticationService.getInstance();
-
     UserDAO userDAO = UserDAO.getInstance();
     private boolean isRunning = true;
     private Scanner scanner = new Scanner(System.in);
@@ -14,17 +17,32 @@ public class Interface
     {
         while(isRunning)
         {
+            AnsiConsole.systemInstall();
             showMenu();
         }
+        AnsiConsole.systemUninstall();
+    }
+    public void showMenu() {
+        System.out.println("=================================");
+
+        if (UserRole.ADMIN) {
+            showMenuAdmin();
+        } else if (UserRole.CEO) {
+            showMenuCEO();
+        } else if (UserRole.TECHNICIAN) {
+            showMenuTechnician();
+        }
+
+        System.out.println("=================================");
     }
     private void handleInput() {
-        if (authService.isAdmin())
+        if (UserRole.ADMIN)
         {
             handleInputAdmin();
-        } else if (authService.isCEO())
+        } else if (UserRole.CEO)
         {
             handleInputCEO();
-        } else if (authService.isTechnician())
+        } else if (UserRole.TECHNICIAN)
         {
             handleInputTechnician();
         }
@@ -32,11 +50,9 @@ public class Interface
 
     public void showMenuAdmin()
     {
-        System.out.println("=================================");
-        System.out.println("ADMIN");
-        System.out.println("1. Dodaj użytkownika");
-        System.out.println("2. Zablokuj użytkownika");
-        System.out.println("0. Wyjście");
+        System.out.println(CLIStyle.blue("=== MENU ADMINA ==="));
+        System.out.println(CLIStyle.green("1. Dodaj użytkownika"));
+        System.out.println(CLIStyle.red("0. Wyjście"));
         handleInputAdmin();
 
     }
