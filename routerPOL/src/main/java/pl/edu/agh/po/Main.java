@@ -7,6 +7,7 @@ public class Main {
     public static void main(String[] args) {
         AuthenticationService authService = AuthenticationService.getInstance();
         System.out.println("Baza danych zostala zainicjalizowana (plik: rp.db)");
+        authService.backupDatabase();
 
         Scanner scanner = new Scanner(System.in);
         while (true) {
@@ -28,7 +29,7 @@ public class Main {
                 System.out.println("Logowanie nieudane.\n");
             }
         }
-
+        authService.backupDatabase();
         scanner.close();
     }
 }
