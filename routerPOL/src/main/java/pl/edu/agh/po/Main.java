@@ -7,6 +7,8 @@ public class Main {
     public static void main(String[] args) {
         AuthenticationService authService = AuthenticationService.getInstance();
         Utilities utilities = Utilities.getInstance();
+        DeviceDAO deviceDAO = DeviceDAO.getInstance();
+        UserDAO userDAO = UserDAO.getInstance();
         System.out.println("Baza danych zostala zainicjalizowana (plik: rp.db)");
 
         Scanner scanner = new Scanner(System.in);

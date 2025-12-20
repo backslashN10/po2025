@@ -20,7 +20,7 @@ public class DeviceDAO {
             e.printStackTrace();
         }
     }
-    private static DeviceDAO getInstance(){
+    public static DeviceDAO getInstance(){
         if (instance == null){
             instance = new DeviceDAO();
         }
