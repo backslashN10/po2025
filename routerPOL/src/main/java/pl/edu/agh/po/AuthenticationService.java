@@ -18,7 +18,7 @@ public class AuthenticationService{
     public boolean login(String username, String password){
         User userLookup = UserDAO.getInstance().findByUsername(username);
         if (userLookup != null){
-            if (userLookup.getPassword().equals(password)){
+            if (PasswordEncryption.verify(password, userLookup.getPassword())){
                 currentUser = userLookup;
                 return true;
             }

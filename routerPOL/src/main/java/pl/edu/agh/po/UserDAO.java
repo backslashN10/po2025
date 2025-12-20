@@ -19,8 +19,6 @@ public class UserDAO {
             createTable();
             createDefaultAdminIfNotExists();
 
-            String sql = "INSERT INTO users ('username', 'password', 'role') VALUES (?, ?, ?)";
-
         }
         catch (SQLException e){
             e.printStackTrace();
@@ -103,7 +101,10 @@ public class UserDAO {
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next() == true){
-                return new User(rs.getLong("id"), rs.getString("username"), rs.getString("password"), UserRole.valueOf(rs.getString("role")));
+                return new User(rs.getLong("id"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        UserRole.valueOf(rs.getString("role")));
             }
         }
         catch (SQLException e){
@@ -115,7 +116,7 @@ public class UserDAO {
         String sql = "INSERT INTO users ('username', 'password', 'role') VALUES (?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)){
             pstmt.setString(1, user.getUsername());
-            pstmt.setString(2, user.getPassword());
+            pstmt.setString(2, PasswordEncryption.hash(user.getPassword()));
             pstmt.setString(3, user.getRole().name());
             pstmt.execute();
         }
