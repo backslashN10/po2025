@@ -1,12 +1,13 @@
 package pl.edu.agh.po;
 
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.security.SecureRandom;
 
 public class UserDAO {
     private static UserDAO instance;
@@ -15,73 +16,12 @@ public class UserDAO {
     private UserDAO(){
         try{
             connection = DriverManager.getConnection("jdbc:sqlite:rp.db");
-            //create random admin login password first use
             createTable();
-            createDefaultAdminIfNotExists();
-
         }
         catch (SQLException e){
             e.printStackTrace();
         }
     }
-    private void createNewUser()
-    {
-        if(!isAdminExists())
-        {
-            return;
-        }
-        //po wybraniu opcji np. [1] dodaj uzytkownika wybieramy mu nick a haslo jest jednorazowo generowane
-        //
-    }
-
-
-
-    private void createDefaultAdminIfNotExists() {
-        if (isAdminExists()) {
-            return;
-        }
-
-        String password = generateRandomPassword(12);
-
-        User admin = new User(
-                1L,
-                "admin",
-                password,
-                UserRole.ADMIN
-        );
-
-        save(admin);
-
-        System.out.println("=================================");
-        System.out.println("UTWORZONO KONTO ADMINA");
-        System.out.println("login: admin");
-        System.out.println("hasło: " + password);
-        System.out.println("=================================");
-    }
-
-    private String generateRandomPassword(int length) {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-        SecureRandom random = new SecureRandom();
-        StringBuilder password = new StringBuilder();
-
-        for (int i = 0; i < length; i++) {
-            password.append(chars.charAt(random.nextInt(chars.length())));
-        }
-        return password.toString();
-    }
-
-    private boolean isAdminExists() {
-        String sql = "SELECT 1 FROM users WHERE role = 'ADMIN' LIMIT 1";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            return rs.next();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-
     public static UserDAO getInstance(){
         if (instance == null){
             instance = new UserDAO();
@@ -99,10 +39,29 @@ public class UserDAO {
                 """;
         try (Statement stmt = connection.createStatement()){
             stmt.execute(sql);
+            User admin = new User(0L, "admin1", "admin1", UserRole.ADMIN);
+            save(admin);
         }
         catch (SQLException e){
             e.printStackTrace();
         }
+    }
+    public User findByID(long ID){
+        String sql = "SELECT * FROM users WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)){
+            pstmt.setLong(1, ID);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next() == true){
+                return new User(rs.getLong("id"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        UserRole.valueOf(rs.getString("role")));
+            }
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+        return null;
     }
     public User findByUsername(String username){
         String sql = "SELECT * FROM users WHERE username = ?";
@@ -121,6 +80,37 @@ public class UserDAO {
         }
         return null;
     }
+    public User findByRole(UserRole role){
+        String sql = "SELECT * FROM users WHERE role = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)){
+            pstmt.setString(1, role.name());
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next() == true){
+                return new User(rs.getLong("id"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        UserRole.valueOf(rs.getString("role")));
+            }
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public List<User> findALL(){
+        String sql = "SELECT * FROM users";
+        List<User> users = new ArrayList<>();
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)){
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next() == true){
+                users.add(new User(rs.getLong("id"), rs.getString("username"), rs.getString("password"), UserRole.valueOf(rs.getString("role"))));
+            }
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+        return users;
+    }
     public void save(User user){
         String sql = "INSERT INTO users ('username', 'password', 'role') VALUES (?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)){
@@ -130,6 +120,26 @@ public class UserDAO {
             pstmt.execute();
         }
         catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+    public void deleteByID(long ID){
+        String sql = "DELETE FROM users WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, ID);
+            pstmt.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public void updateData(User user){
+        String sql = "UPDATE users SET username = ?, password = ?, role = ? WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, user.getUsername());
+            pstmt.setString(2, user.getPassword());
+            pstmt.setString(3, user.getRole().name());
+            pstmt.setLong(4, user.getID());
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
