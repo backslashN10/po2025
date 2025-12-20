@@ -33,22 +33,6 @@ public class AuthenticationService{
         return false;
     }
 
-    public void backupDatabase() {
-        Path source = Paths.get("rp.db");
-        String timestamp = LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"));
-        Path backup = Paths.get("G:/Mój dysk/backup/rp" + timestamp + ".db.bak");
-        try {
-            Files.copy(
-                    source,
-                    backup,
-                    StandardCopyOption.REPLACE_EXISTING
-            );
-            System.out.println("Backup wykonany");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     public void logout(){
         currentUser = null;
