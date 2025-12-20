@@ -7,5 +7,36 @@ public class Device {
     private String model;
     private String hostName;
     private int numberOfEthernetInterfaces;
-    private String configuration; 
+    private String configuration;
+
+    public Device(long id, DeviceType type, DeviceStatus status, String model, String hostname, int numberOfEthernetInterfaces, String configuration){
+        this.id = id;
+        this.type = type;
+        this.status = status;
+        this.model = model;
+        this.hostName = hostname;
+        this.numberOfEthernetInterfaces = numberOfEthernetInterfaces;
+        this.configuration = configuration;
+    }
+    public long getId(){
+        return id;
+    }
+    public DeviceType getType(){
+        return type;
+    }
+    public DeviceStatus getStatus(){
+        return status;
+    }
+    public String getModel(){
+        return model;
+    }
+    public String getHostName(){
+        return hostName;
+    }
+    public int getNumberOfEthernetInterfaces(){
+        return numberOfEthernetInterfaces;
+    }
+    public String getConfiguration(){
+        return configuration;
+    }
 }
