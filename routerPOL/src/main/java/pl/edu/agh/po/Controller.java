@@ -91,19 +91,19 @@ public class Controller
     }
 
 
-
-    public void handleUserLogin()
-    {
-
-        String username = scanner.nextLine();
-        String password = scanner.nextLine();
-        boolean success = authService.login(username, password);
-        if (success) {
-            System.out.println("Logowanie udane\n");
-        } else {
-            System.out.println("Logowanie nieudane.\n");
-        }
-    }
+//to do
+//    public void handleUserLogin()
+//    {
+//
+//        String username = scanner.nextLine();
+//        String password = scanner.nextLine();
+//        boolean success = authService.login(username, password);
+//        if (success) {
+//            System.out.println("Logowanie udane\n");
+//        } else {
+//            System.out.println("Logowanie nieudane.\n");
+//        }
+//    }
 
 
 }
