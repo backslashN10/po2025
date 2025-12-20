@@ -7,7 +7,7 @@ public class Main {
     public static void main(String[] args) {
         AuthenticationService authService = AuthenticationService.getInstance();
         Utilities utilities = Utilities.getInstance();
-        new Interface().start();
+        new Controller().start();
         utilities.backupDatabase();
 
 
