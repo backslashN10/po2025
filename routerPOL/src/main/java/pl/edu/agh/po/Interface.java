@@ -14,12 +14,34 @@ public class Interface
     AuthenticationService authService = AuthenticationService.getInstance();
     private Scanner scanner = new Scanner(System.in);
 
+
+    public void handleUserLogin()
+    {
+
+        String username = scanner.nextLine();
+        String password = scanner.nextLine();
+        boolean success = authService.login(username, password);
+            if (success) {
+                System.out.println("Logowanie udane\n");
+            } else {
+                System.out.println("Logowanie nieudane.\n");
+            }
+    }
+    public void showMenuLogin()
+    {
+        System.out.println(CLIStyle.blue("=== SIEMA ==="));
+        System.out.println(CLIStyle.green("1. Zaloguj się"));
+        System.out.println(CLIStyle.red("0. Wyjście"));
+        handleUserLogin();
+    }
+
     public void start()
     {
         while(isRunning)
         {
             AnsiConsole.systemInstall();
             showMenu();
+            handleInput();
         }
         AnsiConsole.systemUninstall();
     }
@@ -36,6 +58,10 @@ public class Interface
             showMenuCEO();
         } else if (authService.getCurrentUser().getRole() == UserRole.TECHNICIAN) {
             showMenuTechnician();
+        }
+        else if(authService.getCurrentUser().getRole() == null)
+        {
+            showMenuLogin();
         }
 
         System.out.println("=================================");
