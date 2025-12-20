@@ -11,6 +11,7 @@ public class Interface
 {
     UserDAO userDAO = UserDAO.getInstance();
     private boolean isRunning = true;
+    AuthenticationService authService = AuthenticationService.getInstance();
     private Scanner scanner = new Scanner(System.in);
 
     public void start()
@@ -22,27 +23,31 @@ public class Interface
         }
         AnsiConsole.systemUninstall();
     }
+    public void quit()
+    {
+        isRunning = false;
+    }
     public void showMenu() {
         System.out.println("=================================");
 
-        if (UserRole.ADMIN) {
+        if (authService.getCurrentUser().getRole() == UserRole.ADMIN) {
             showMenuAdmin();
-        } else if (UserRole.CEO) {
+        } else if (authService.getCurrentUser().getRole() == UserRole.CEO) {
             showMenuCEO();
-        } else if (UserRole.TECHNICIAN) {
+        } else if (authService.getCurrentUser().getRole() == UserRole.TECHNICIAN) {
             showMenuTechnician();
         }
 
         System.out.println("=================================");
     }
     private void handleInput() {
-        if (UserRole.ADMIN)
+        if (authService.getCurrentUser().getRole() == UserRole.ADMIN)
         {
             handleInputAdmin();
-        } else if (UserRole.CEO)
+        } else if (authService.getCurrentUser().getRole() == UserRole.CEO)
         {
             handleInputCEO();
-        } else if (UserRole.TECHNICIAN)
+        } else if (authService.getCurrentUser().getRole() == UserRole.TECHNICIAN)
         {
             handleInputTechnician();
         }
@@ -63,10 +68,19 @@ public class Interface
         switch (choice) {
             case 1 -> addUser();
             case 2 -> blockUser();
-            case 0 -> wyjscie();
+            case 0 -> quit();
             default -> System.out.println("Nieznana opcja");
         }
     }
+    public void addUser()
+    {
+        //adding user xd how to mozliwe
+    }
+    public void blockUser()
+    {
+        //blocking
+    }
+
     public void showMenuCEO()
     {
         System.out.println("=================================");
@@ -84,9 +98,22 @@ public class Interface
         switch (choice) {
             case 1 -> showDB();
             case 2 -> makeRaport();
-            case 0 -> wyjazdZBudowy();
+            case 0 -> quit();
             default -> System.out.println("Nieznana opcja");
         }
+    }
+    public void showDB()
+    {
+        //show db in some way arraylist or as you want
+    }
+    public void makeRaport()
+    {
+        System.out.println("1. Raport miesięczny");
+        System.out.println("2. Raport roczny");
+
+        int choice = scanner.nextInt();
+        //raportgenerate(choice)
+
     }
     public void showMenuTechnician()
     {
@@ -104,14 +131,26 @@ public class Interface
         int choice = scanner.nextInt();
 
         switch (choice) {
-            case 1 -> addNewUrzadzenie();
-            case 2 -> configChange();
-            case 3 -> deleteUrzadzenie();
-            case 0 -> siema();
+            case 1 -> addNewDevice();
+            case 2 -> changeConfig();
+            case 3 -> deleteDevice();
+            case 0 -> quit();
             default -> System.out.println("Nieznana opcja");
         }
     }
+    public void addNewDevice()
+    {
+        //some formula to Device object
+    }
+    public void changeConfig()
+    {
+        //also some formula
 
+    }
+    public void deleteDevice()
+    {
+        //some formula
+    }
 
 
     public void showMenuSUDO()

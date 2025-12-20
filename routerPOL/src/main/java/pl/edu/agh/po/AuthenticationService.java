@@ -37,5 +37,8 @@ public class AuthenticationService{
     public void logout(){
         currentUser = null;
     }
+    public User getCurrentUser(){
+        return currentUser;
+    }
 }
 
