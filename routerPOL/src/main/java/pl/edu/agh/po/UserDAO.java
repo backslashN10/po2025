@@ -24,6 +24,15 @@ public class UserDAO {
             e.printStackTrace();
         }
     }
+    private void createNewUser()
+    {
+        if(!isAdminExists())
+        {
+            return;
+        }
+        //po wybraniu opcji np. [1] dodaj uzytkownika wybieramy mu nick a haslo jest jednorazowo generowane
+        //
+    }
 
 
 
