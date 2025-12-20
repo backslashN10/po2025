@@ -1,5 +1,12 @@
 package pl.edu.agh.po;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class AuthenticationService{
     private static AuthenticationService instance;
     private User currentUser;
@@ -18,13 +25,15 @@ public class AuthenticationService{
     public boolean login(String username, String password){
         User userLookup = UserDAO.getInstance().findByUsername(username);
         if (userLookup != null){
-            if (userLookup.getPassword().equals(password)){
+            if (PasswordEncryption.verify(password, userLookup.getPassword())){
                 currentUser = userLookup;
                 return true;
             }
         }
         return false;
     }
+
+
     public void logout(){
         currentUser = null;
     }

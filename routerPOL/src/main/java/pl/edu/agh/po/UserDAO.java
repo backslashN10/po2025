@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.security.SecureRandom;
 
 public class UserDAO {
     private static UserDAO instance;
@@ -14,12 +15,73 @@ public class UserDAO {
     private UserDAO(){
         try{
             connection = DriverManager.getConnection("jdbc:sqlite:rp.db");
+            //create random admin login password first use
             createTable();
+            createDefaultAdminIfNotExists();
+
         }
         catch (SQLException e){
             e.printStackTrace();
         }
     }
+    private void createNewUser()
+    {
+        if(!isAdminExists())
+        {
+            return;
+        }
+        //po wybraniu opcji np. [1] dodaj uzytkownika wybieramy mu nick a haslo jest jednorazowo generowane
+        //
+    }
+
+
+
+    private void createDefaultAdminIfNotExists() {
+        if (isAdminExists()) {
+            return;
+        }
+
+        String password = generateRandomPassword(12);
+
+        User admin = new User(
+                1L,
+                "admin",
+                password,
+                UserRole.ADMIN
+        );
+
+        save(admin);
+
+        System.out.println("=================================");
+        System.out.println("UTWORZONO KONTO ADMINA");
+        System.out.println("login: admin");
+        System.out.println("hasło: " + password);
+        System.out.println("=================================");
+    }
+
+    private String generateRandomPassword(int length) {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder();
+
+        for (int i = 0; i < length; i++) {
+            password.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return password.toString();
+    }
+
+    private boolean isAdminExists() {
+        String sql = "SELECT 1 FROM users WHERE role = 'ADMIN' LIMIT 1";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
     public static UserDAO getInstance(){
         if (instance == null){
             instance = new UserDAO();
@@ -48,7 +110,10 @@ public class UserDAO {
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next() == true){
-                return new User(rs.getLong("id"), rs.getString("username"), rs.getString("password"), UserRole.valueOf(rs.getString("role")));
+                return new User(rs.getLong("id"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        UserRole.valueOf(rs.getString("role")));
             }
         }
         catch (SQLException e){
@@ -60,7 +125,7 @@ public class UserDAO {
         String sql = "INSERT INTO users ('username', 'password', 'role') VALUES (?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)){
             pstmt.setString(1, user.getUsername());
-            pstmt.setString(2, user.getPassword());
+            pstmt.setString(2, PasswordEncryption.hash(user.getPassword()));
             pstmt.setString(3, user.getRole().name());
             pstmt.execute();
         }

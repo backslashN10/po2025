@@ -6,6 +6,7 @@ public class Main {
     // for now this class is only for testing purpose
     public static void main(String[] args) {
         AuthenticationService authService = AuthenticationService.getInstance();
+        Utilities utilities = Utilities.getInstance();
         System.out.println("Baza danych zostala zainicjalizowana (plik: rp.db)");
 
         Scanner scanner = new Scanner(System.in);
@@ -28,7 +29,7 @@ public class Main {
                 System.out.println("Logowanie nieudane.\n");
             }
         }
-
+        utilities.backupDatabase();
         scanner.close();
     }
 }
