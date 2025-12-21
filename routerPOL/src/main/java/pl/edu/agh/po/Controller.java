@@ -2,8 +2,6 @@ package pl.edu.agh.po;
 
 import org.fusesource.jansi.AnsiConsole;
 
-import java.util.Scanner;
-
 public class Controller
 {
 
@@ -25,6 +23,18 @@ public class Controller
     {
         isRunning = false;
     }
+    public void addUser() {
+
+        LoginData loginData = view.getLoginProcess();
+        String username = loginData.getUsername();
+        String password = loginData.getPassword();
+        UserRole role = view.getRole();
+
+        User newUser = new User(username, password, role);
+        userDAO.save(newUser); // zapis do repozytorium/listy
+        System.out.println("Użytkownik dodany: " + newUser.getUsername());
+    }
+
     public void handleShow()
     {
         int input = 666;
@@ -43,15 +53,15 @@ public class Controller
         {
             case ADMIN:
                 input = view.showMenuAdmin();
-                if(input == 0)
+                if(input == 1)
                 {
-                    view.showAddUser();
+                    addUser();
                 }
-                else if(input == 1)
+                else if(input == 2)
                 {
                     view.blockUser();
                 }
-                else if(input == 2)
+                else if(input == 0)
                 {
                     quit();
                 }
@@ -93,14 +103,9 @@ public class Controller
                 view.defaultOption();
         }
     }
-    public void handleAdminPassword()
-    {
-        view.showMenuSUDO("admin1");
-
-    }
     public void handleUserLogin()
     {
-        LoginData data = view.showLoginProcess();
+        LoginData data = view.getLoginProcess();
         boolean success = authService.login(data.getUsername(), data.getPassword());
         if (success) {
             System.out.println("Logowanie udane\n");

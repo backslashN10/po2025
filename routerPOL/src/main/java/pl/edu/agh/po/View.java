@@ -41,13 +41,32 @@ public class View {
         scanner.nextLine();
         return choice;
     }
-    public LoginData showLoginProcess()
+    public LoginData getLoginProcess()
     {
         System.out.print("Login: ");
         String login = scanner.nextLine();
         System.out.print("Hasło: ");
         String password = scanner.nextLine();
         return new LoginData(login, password);
+    }
+    public UserRole getRole() {
+        System.out.println("Wybierz rolę:");
+        UserRole[] roles = UserRole.values();
+        for (int i = 0; i < roles.length; i++) {
+            System.out.println((i + 1) + ". " + roles[i]);
+        }
+
+        int choice = -1;
+        while (choice < 1 || choice > roles.length) {
+            System.out.print("Twój wybór: ");
+            if (scanner.hasNextInt()) {
+                choice = scanner.nextInt();
+            } else {
+                scanner.next(); // ignoruje złe dane
+            }
+        }
+        scanner.nextLine();
+        return roles[choice - 1];
     }
     public int showMenuCEO()
     {
@@ -68,14 +87,7 @@ public class View {
         scanner.nextLine();
         return choice;
     }
-    public void showMenuSUDO(String password)
-    {
-        System.out.println("=================================");
-        System.out.println("UTWORZONO KONTO ADMINA");
-        System.out.println("login: admin");
-        System.out.println("hasło: " + password);
-        System.out.println("=================================");
-    }
+
     public int showMenuTechnician()
     {
         System.out.println("=================================");
@@ -89,10 +101,7 @@ public class View {
         return choice;
 
     }
-    public void showAddUser()
-    {
-        //adding user xd how to mozliwe
-    }
+
     public void changeConfig()
     {
         //also some formula

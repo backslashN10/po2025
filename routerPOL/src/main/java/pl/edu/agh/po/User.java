@@ -12,6 +12,12 @@ public class User {
         this.password = password;
         this.role = role;
     }
+    // dla tworzenia nowych userow
+    public User(String username, String password, UserRole role) {
+        this.username = username;
+        this.password = password;
+        this.role = role;
+    }
     public long getID(){
         return id;
     }
@@ -23,5 +29,8 @@ public class User {
     }
     public UserRole getRole(){
         return role;
+    }
+    public void setID(long id) {
+        this.id = id;
     }
 }
