@@ -28,7 +28,7 @@ public class AuthenticationService{
     public void logout(){
         currentUser = null;
     }
-    public User getCuttenUser(){
+    public User getCurrentUser(){
         return currentUser;
     }
 }
