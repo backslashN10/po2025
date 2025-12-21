@@ -4,9 +4,6 @@ import java.util.Scanner;
 
 public class View {
     private Scanner scanner = new Scanner(System.in);
-    UserDAO userDAO = UserDAO.getInstance();
-    AuthenticationService authService = AuthenticationService.getInstance();
-    LoginData loginData = new LoginData();
 
     public int showMenuAdmin()
     {
@@ -71,12 +68,12 @@ public class View {
         scanner.nextLine();
         return choice;
     }
-    public void showMenuSUDO()
+    public void showMenuSUDO(String password)
     {
         System.out.println("=================================");
         System.out.println("UTWORZONO KONTO ADMINA");
         System.out.println("login: admin");
-        System.out.println("hasło: " + userDAO.generateRandomPassword(12));
+        System.out.println("hasło: " + password);
         System.out.println("=================================");
     }
     public int showMenuTechnician()

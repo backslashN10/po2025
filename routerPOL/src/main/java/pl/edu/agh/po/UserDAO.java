@@ -37,9 +37,9 @@ public class UserDAO {
 
 
 
-    private void createDefaultAdminIfNotExists() {
+    public String createDefaultAdminIfNotExists() {
         if (isAdminExists()) {
-            return;
+            return null;
         }
 
         String password = generateRandomPassword(12);
@@ -54,7 +54,7 @@ public class UserDAO {
         );
 
         save(admin);
-        view.showMenuSUDO();
+        return password;
 
     }
 

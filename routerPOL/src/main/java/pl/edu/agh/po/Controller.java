@@ -10,10 +10,12 @@ public class Controller
     private boolean isRunning = true;
     AuthenticationService authService = AuthenticationService.getInstance();
     View view = new View();
+    UserDAO userDAO = UserDAO.getInstance();
 
     public void start()
     {
         AnsiConsole.systemInstall();
+        handleAdminPassword(); // gdzies to daj w zaleznosci od logiki tego admina
         while(isRunning)
         {
             handleShow();
@@ -33,7 +35,7 @@ public class Controller
                 input = view.showMenuLogin();
                 if(input == 1)
                 {
-                    view.showLoginProcess();
+                    handleUserLogin();
                 }
                 else if(input == 0) quit();
             return;
@@ -90,6 +92,14 @@ public class Controller
 
             default:
                 view.defaultOption();
+        }
+    }
+    public void handleAdminPassword()
+    {
+        String password = userDAO.createDefaultAdminIfNotExists();
+        if(password != null)
+        {
+            view.showMenuSUDO(password);
         }
     }
     public void handleUserLogin()
