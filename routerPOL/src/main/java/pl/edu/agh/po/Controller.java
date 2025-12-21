@@ -7,18 +7,15 @@ import java.util.Scanner;
 public class Controller
 {
 
-    //bo tak user bedzie null przy pierwszym wejsciu -> zrobic go adminem i dac pasy
-    // gdy sie wyloguje xD no i co tera
-
     private boolean isRunning = true;
     AuthenticationService authService = AuthenticationService.getInstance();
     View view = new View();
 
     public void start()
     {
+        AnsiConsole.systemInstall();
         while(isRunning)
         {
-            AnsiConsole.systemInstall();
             handleShow();
         }
         AnsiConsole.systemUninstall();
@@ -30,6 +27,17 @@ public class Controller
     public void handleShow()
     {
         int input = 666;
+        User currentUser = authService.getCurrentUser();
+        if(currentUser == null)
+        {
+                input = view.showMenuLogin();
+                if(input == 1)
+                {
+                    view.showLoginProcess();
+                }
+                else if(input == 0) quit();
+            return;
+        }
         switch(authService.getCurrentUser().getRole())
         {
             case ADMIN:
@@ -79,31 +87,20 @@ public class Controller
                     quit();
                 }
                 break;
-            case null:
-                view.showMenuSUDO();
-                view.showMenuLogin();
-                break;
+
             default:
                 view.defaultOption();
-
         }
-
     }
-
-
-//to do
-//    public void handleUserLogin()
-//    {
-//
-//        String username = scanner.nextLine();
-//        String password = scanner.nextLine();
-//        boolean success = authService.login(username, password);
-//        if (success) {
-//            System.out.println("Logowanie udane\n");
-//        } else {
-//            System.out.println("Logowanie nieudane.\n");
-//        }
-//    }
-
+    public void handleUserLogin()
+    {
+        LoginData data = view.showLoginProcess();
+        boolean success = authService.login(data.getUsername(), data.getPassword());
+        if (success) {
+            System.out.println("Logowanie udane\n");
+        } else {
+            System.out.println("Logowanie nieudane.\n");
+        }
+    }
 
 }

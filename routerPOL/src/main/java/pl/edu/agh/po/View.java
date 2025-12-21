@@ -5,6 +5,8 @@ import java.util.Scanner;
 public class View {
     private Scanner scanner = new Scanner(System.in);
     UserDAO userDAO = UserDAO.getInstance();
+    AuthenticationService authService = AuthenticationService.getInstance();
+    LoginData loginData = new LoginData();
 
     public int showMenuAdmin()
     {
@@ -12,7 +14,9 @@ public class View {
         System.out.println(CLIStyle.green("1. Dodaj użytkownika"));
         System.out.println("2. Zablokuj użytkownika");
         System.out.println(CLIStyle.red("0. Wyjście"));
-        return scanner.nextInt();
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        return choice;
     }
     public int showDB()
     {
@@ -36,7 +40,17 @@ public class View {
         System.out.println(CLIStyle.blue("=== SIEMA ==="));
         System.out.println(CLIStyle.green("1. Zaloguj się"));
         System.out.println(CLIStyle.red("0. Wyjście"));
-        return scanner.nextInt();
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        return choice;
+    }
+    public LoginData showLoginProcess()
+    {
+        System.out.print("Login: ");
+        String login = scanner.nextLine();
+        System.out.print("Hasło: ");
+        String password = scanner.nextLine();
+        return new LoginData(login, password);
     }
     public int showMenuCEO()
     {
@@ -45,19 +59,20 @@ public class View {
         System.out.println("1. Pokaż bazę danych");
         System.out.println("2. Stwórz raport ");
         System.out.println("0. Wyjście");
-        return scanner.nextInt();
-
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        return choice;
     }
     public int makeRaport()
     {
         System.out.println("1. Raport miesięczny");
         System.out.println("2. Raport roczny");
-        return scanner.nextInt();
-
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        return choice;
     }
     public void showMenuSUDO()
     {
-        //tylko dla pierwszego uzytku(pierwszy obiekt konstruktora czy inny warunek na admina)
         System.out.println("=================================");
         System.out.println("UTWORZONO KONTO ADMINA");
         System.out.println("login: admin");
@@ -72,7 +87,9 @@ public class View {
         System.out.println("2. Zmień konfigurację ");
         System.out.println("3. Usuń urządzenie ");
         System.out.println("0. Wyjście");
-        return scanner.nextInt();
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        return choice;
 
     }
     public void showAddUser()

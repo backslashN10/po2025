@@ -11,6 +11,7 @@ import java.security.SecureRandom;
 public class UserDAO {
     private static UserDAO instance;
     private static Connection connection;
+    private static View view;
     
     private UserDAO(){
         try{
@@ -53,6 +54,8 @@ public class UserDAO {
         );
 
         save(admin);
+        view.showMenuSUDO();
+
     }
 
 

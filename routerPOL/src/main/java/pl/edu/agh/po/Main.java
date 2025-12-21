@@ -7,11 +7,11 @@ public class Main {
     public static void main(String[] args) {
         AuthenticationService authService = AuthenticationService.getInstance();
         Utilities utilities = Utilities.getInstance();
+
         new Controller().start();
         utilities.backupDatabase();
 
 
-//        Scanner scanner = new Scanner(System.in);
 //        while (true) {
 //            System.out.print("Username (lub 'exit' aby wyjsc): ");
 //            String username = scanner.nextLine();
