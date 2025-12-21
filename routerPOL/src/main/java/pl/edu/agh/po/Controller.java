@@ -15,7 +15,6 @@ public class Controller
     public void start()
     {
         AnsiConsole.systemInstall();
-        handleAdminPassword(); // gdzies to daj w zaleznosci od logiki tego admina
         while(isRunning)
         {
             handleShow();
@@ -96,11 +95,8 @@ public class Controller
     }
     public void handleAdminPassword()
     {
-        String password = userDAO.createDefaultAdminIfNotExists();
-        if(password != null)
-        {
-            view.showMenuSUDO(password);
-        }
+        view.showMenuSUDO("admin1");
+
     }
     public void handleUserLogin()
     {
