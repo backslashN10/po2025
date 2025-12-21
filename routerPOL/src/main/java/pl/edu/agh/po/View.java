@@ -1,5 +1,6 @@
 package pl.edu.agh.po;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class View {
@@ -15,18 +16,29 @@ public class View {
         scanner.nextLine();
         return choice;
     }
-    public int showDB()
-    {
-        //show db in some way arraylist or as you want
-        return 0;
+    public void showUsers(List<User> users) {
+        System.out.println("=== Lista użytkowników ===");
+        for (User user : users) {
+            System.out.println(
+                    "ID: " + user.getID() +
+                            ", login: " + user.getUsername() +
+                            ", rola: " + user.getRole()
+            );
+        }
     }
     public void defaultOption()
     {
         System.out.println("Niepoprawna opcja");
     }
-    public void blockUser()
+    public String blockUser()
     {
-        //blocking
+        System.out.println("Podaj username kogo chcesz zablokowac");
+        String username = scanner.nextLine();
+        return username;
+
+    }
+    public void showMessage(String message) {
+        System.out.println(message);
     }
     public void addNewDevice()
     {
@@ -79,14 +91,15 @@ public class View {
         scanner.nextLine();
         return choice;
     }
-    public int makeRaport()
-    {
-        System.out.println("1. Raport miesięczny");
-        System.out.println("2. Raport roczny");
-        int choice = scanner.nextInt();
-        scanner.nextLine();
-        return choice;
-    }
+//    public int makeRaport()
+//    {
+//        System.out.println("1. Raport miesięczny");
+//        System.out.println("2. Raport roczny");
+//        int choice = scanner.nextInt();
+//        scanner.nextLine();
+//        return choice;
+//    }
+    //czyli jak rozumiem my mamy tylko ogolnie raport i siema
 
     public int showMenuTechnician()
     {

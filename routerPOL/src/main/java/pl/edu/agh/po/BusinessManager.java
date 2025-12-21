@@ -8,12 +8,13 @@ public class BusinessManager {
 
     private BusinessManager(){}
 
-    private static BusinessManager getInstance(){
+    public static BusinessManager getInstance(){
         if (instance == null){
             instance = new BusinessManager();
         }
         return instance;
     }
+
     public String generateFullRaport(){
         StringBuilder report = new StringBuilder();
         

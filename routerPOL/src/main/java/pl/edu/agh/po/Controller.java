@@ -2,6 +2,8 @@ package pl.edu.agh.po;
 
 import org.fusesource.jansi.AnsiConsole;
 
+import java.util.List;
+
 public class Controller
 {
 
@@ -9,7 +11,7 @@ public class Controller
     AuthenticationService authService = AuthenticationService.getInstance();
     View view = new View();
     UserDAO userDAO = UserDAO.getInstance();
-
+    BusinessManager businessManager = BusinessManager.getInstance();
     public void start()
     {
         AnsiConsole.systemInstall();
@@ -34,6 +36,20 @@ public class Controller
         userDAO.save(newUser); // zapis do repozytorium/listy
         System.out.println("Użytkownik dodany: " + newUser.getUsername());
     }
+    public void showAllUsers() {
+        List<User> users = userDAO.findALL();
+
+        if (users.isEmpty()) {
+            view.showMessage("Brak użytkowników w bazie.");
+            return;
+        }
+
+        view.showUsers(users);
+    }
+    public void makeRaport()
+    {
+        businessManager.generateFullRaport();
+    }
 
     public void handleShow()
     {
@@ -49,6 +65,7 @@ public class Controller
                 else if(input == 0) quit();
             return;
         }
+
         switch(authService.getCurrentUser().getRole())
         {
             case ADMIN:
@@ -59,7 +76,7 @@ public class Controller
                 }
                 else if(input == 2)
                 {
-                    view.blockUser();
+                    blockUser();
                 }
                 else if(input == 0)
                 {
@@ -70,11 +87,11 @@ public class Controller
                 input =  view.showMenuCEO();
                 if(input == 1)
                 {
-                    view.showDB();
+                    showAllUsers();
                 }
                 else if(input == 2)
                 {
-                    view.makeRaport();
+                    makeRaport();
                 }
                 else if(input == 0) {
                     quit();
@@ -102,6 +119,17 @@ public class Controller
             default:
                 view.defaultOption();
         }
+    }
+    public void blockUser()
+    {
+        String username = view.blockUser();
+        User user = userDAO.findByUsername(username);
+        if(user == null)
+        {
+            view.showMessage("Użytkownik o loginie " + username + " nie istnieje.");
+            return;
+        }
+        userDAO.deleteByID(user.getID());
     }
     public void handleUserLogin()
     {
