@@ -11,6 +11,7 @@ public class View {
         System.out.println(CLIStyle.blue("=== MENU ADMINA ==="));
         System.out.println(CLIStyle.green("1. Dodaj użytkownika"));
         System.out.println("2. Zablokuj użytkownika");
+        System.out.println("3. Wyloguj");
         System.out.println(CLIStyle.red("0. Wyjście"));
         int choice = scanner.nextInt();
         scanner.nextLine();
