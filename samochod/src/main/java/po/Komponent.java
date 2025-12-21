@@ -20,7 +20,4 @@ public class Komponent {
 	public double getCena() {
 		return cena;
 	}
-	public String getInfo() {
-		return String.format("KOMPONENT [nazwa=%s, waga=%f kg, cena=%f PLN", nazwa, waga, cena);
-	}
 }

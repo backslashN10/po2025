@@ -10,7 +10,7 @@ public class App extends Application {
     public void start(Stage stage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/MainView.fxml"));
         Scene scene = new Scene(loader.load());
-        stage.setTitle("Symulator Samochodu");
+        stage.setTitle("Symulakrum motoryzacyjne");
         stage.setScene(scene);
         stage.show();
     }

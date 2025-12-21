@@ -21,7 +21,7 @@ public class SkrzyniaBiegow extends Komponent {
 	}
 	public void zwiekszBieg() {
 		if (aktualnyBieg != iloscBiegow) {
-			if (sprzeglo.czySprzegloLapie() == true) {
+			if (sprzeglo.getStanSprzegla() == true) {
 				aktualnyBieg += 1;
 				aktualnePrzelozenie = przelozenia[aktualnyBieg];
 			}
@@ -35,7 +35,7 @@ public class SkrzyniaBiegow extends Komponent {
 	}
 	public void zmniejszBieg() {
 		if (aktualnyBieg != 0) {
-			if (sprzeglo.czySprzegloLapie() == true) {
+			if (sprzeglo.getStanSprzegla() == true) {
 				aktualnyBieg -= 1;
 				aktualnePrzelozenie = przelozenia[aktualnyBieg];
 			}

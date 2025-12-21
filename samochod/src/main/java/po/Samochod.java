@@ -21,7 +21,8 @@ public class Samochod {
 	public void wlacz() {
 		if (czyWlaczony == false) {
 			czyWlaczony = true;
-		} // TODO obroty podkręcić
+			silnik.uruchom();
+		}
 		else {
 			System.out.println("Samochód już jest włączony.");
 		}
@@ -29,6 +30,7 @@ public class Samochod {
 	public void wylacz() {
 		if (czyWlaczony == true) {
 			czyWlaczony = false;
+			silnik.zatrzymaj();
 		}
 		else {
 			System.out.println("Samochód już jest wyłączony.");
@@ -38,7 +40,7 @@ public class Samochod {
 		this.pozycja.przemiesc(pozycja, getAktPredkosc(), 0.1);
 	}
 	public double getWaga() {
-		return silnik.getWaga() + skrzyniaBiegow.getWaga(); // TODO dodać wage sprzęgła
+		return silnik.getWaga() + skrzyniaBiegow.getWaga() + skrzyniaBiegow.getSprzeglo().getWaga();
 	}
 	public double getAktPredkosc() {
 		double predkoscTeoretyczna = silnik.getObroty() * skrzyniaBiegow.getAktPrzelozenie();
