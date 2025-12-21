@@ -48,4 +48,7 @@ public class Device {
     public String getConfiguration(){
         return configuration;
     }
+    public void setConfiguration(String configuration){
+        this.configuration = configuration;
+    }
 }

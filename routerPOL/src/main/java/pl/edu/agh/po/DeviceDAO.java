@@ -33,7 +33,7 @@ public class DeviceDAO {
                 type TEXT NOT NULL,
                 status TEXT NOT NULL,
                 model TEXT NOT NULL,
-                host_name TEXT,
+                hostname TEXT,
                 num_eth_int INTEGER NOT NULL,
                 configuration TEXT
                 );
@@ -106,7 +106,7 @@ public class DeviceDAO {
         }
     }
     public void updateData(Device device){
-        String sql = "UPDATE devices SET type = ?, status = ?, model = ?, host_name = ?, num_eth_int = ?, configuration = ? WHERE id = ?";
+        String sql = "UPDATE devices SET type = ?, status = ?, model = ?, hostname = ?, num_eth_int = ?, configuration = ? WHERE id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, device.getType().name());
             pstmt.setString(2, device.getStatus().name());
@@ -115,12 +115,13 @@ public class DeviceDAO {
             pstmt.setInt(5, device.getNumberOfEthernetInterfaces());
             pstmt.setString(6, device.getConfiguration());
             pstmt.setLong(7, device.getId());
+            pstmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
     public void save(Device device){
-        String sql = "INSERT INTO devices ('type', 'status', 'model', 'host_name', 'num_eth_int', 'configuration') VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO devices ('type', 'status', 'model', 'hostname', 'num_eth_int', 'configuration') VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, device.getType().name());
             pstmt.setString(2, device.getStatus().name());

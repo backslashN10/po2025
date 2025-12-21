@@ -26,6 +26,23 @@ public class View {
             );
         }
     }
+    public void showDevices(List<Device> devices)
+    {
+        System.out.println("=== Lista urządzeń ===");
+        for(Device device : devices)
+        {
+            System.out.println("-------------------------------");
+            System.out.println("ID: " + device.getId());
+            System.out.println("Typ: " + device.getType());
+            System.out.println("Status: " + device.getStatus());
+            System.out.println("Model: " + device.getModel());
+            System.out.println("Hostname: " + device.getHostName());
+            System.out.println("Liczba interfejsów Ethernet: " + device.getNumberOfEthernetInterfaces());
+            System.out.println("Konfiguracja: " + device.getConfiguration());
+        }
+        System.out.println("-------------------------------");
+    }
+
     public void defaultOption()
     {
         System.out.println("Niepoprawna opcja");
@@ -68,30 +85,16 @@ public class View {
         return chooseEnum("STATUS", DeviceStatus.values());
     }
 
+    public String getNewConfiguration() {
+        System.out.println("Podaj nową konfigurację:");
+        return scanner.nextLine();
+    }
 
 
-    /// TU JEST ZMIANA KONFIGURACJI URZADZENIA
-//    public long getDeviceIdForConfigChange() {
-//        System.out.print("Podaj ID urządzenia: ");
-//        while (!scanner.hasNextLong()) {
-//            scanner.next();
-//            System.out.print("Podaj poprawne ID: ");
-//        }
-//        long id = scanner.nextLong();
-//        scanner.nextLine();
-//        return id;
-//    }
-//
-//    public String getNewConfiguration() {
-//        System.out.println("Podaj nową konfigurację:");
-//        return scanner.nextLine();
-//    }
-/// /
-/// ///
 
 
-public long getDeviceIdToDelete() {
-    System.out.print("Podaj ID urządzenia do usunięcia: ");
+public long getDeviceId() {
+    System.out.print("Podaj ID urządzenia: ");
     while (!scanner.hasNextLong()) {
         scanner.next();
         System.out.print("Podaj poprawne ID: ");
@@ -183,15 +186,6 @@ public long getDeviceIdToDelete() {
         scanner.nextLine();
         return choice;
     }
-//    public int makeRaport()
-//    {
-//        System.out.println("1. Raport miesięczny");
-//        System.out.println("2. Raport roczny");
-//        int choice = scanner.nextInt();
-//        scanner.nextLine();
-//        return choice;
-//    }
-    //czyli jak rozumiem my mamy tylko ogolnie raport i siema
 
     public int showMenuTechnician()
     {
@@ -200,6 +194,8 @@ public long getDeviceIdToDelete() {
         System.out.println("1. Dodaj nowe Urządzenie");
         System.out.println("2. Zmień konfigurację ");
         System.out.println("3. Usuń urządzenie ");
+        System.out.println("4. Pokaż bazę urządzeń ");
+        System.out.println("5. Wyloguj");
         System.out.println("0. Wyjście");
         int choice = scanner.nextInt();
         scanner.nextLine();
@@ -212,9 +208,6 @@ public long getDeviceIdToDelete() {
         //also some formula
 
     }
-    public void deleteDevice()
-    {
-        //some formula
-    }
+
 
 }
