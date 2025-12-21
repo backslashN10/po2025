@@ -12,6 +12,7 @@ public class Controller
     View view = new View();
     UserDAO userDAO = UserDAO.getInstance();
     BusinessManager businessManager = BusinessManager.getInstance();
+    DeviceDAO deviceDAO = DeviceDAO.getInstance();
     public void start()
     {
         AnsiConsole.systemInstall();
@@ -24,6 +25,11 @@ public class Controller
     public void quit()
     {
         isRunning = false;
+    }
+    public void addDevice() {
+        Device device = view.getDataNewDevice();
+        deviceDAO.save(device);
+        view.showMessage("Urządzenie dodane poprawnie.");
     }
     public void addUser() {
 
@@ -50,6 +56,21 @@ public class Controller
     {
         businessManager.generateFullRaport();
     }
+    public void deleteDevice()
+    {
+        long id = view.getDeviceIdToDelete();
+
+        Device device = deviceDAO.findByID(id);
+        if (device == null) {
+            view.showMessage("Nie znaleziono urządzenia o ID: " + id);
+            return;
+        }
+
+        deviceDAO.deleteByID(id);
+        view.showMessage("Urządzenie zostało usunięte.");
+    }
+
+
 
     public void handleShow()
     {
@@ -101,14 +122,14 @@ public class Controller
                 input =  view.showMenuTechnician();
                 if(input == 1)
                 {
-                    view.addNewDevice();
+                   addDevice();
                 }else if(input == 2)
                 {
-                    view.changeConfig();
+                    //view.changeConfig(); TU DOKONCZYC
                 }
                 else if(input == 3)
                 {
-                    view.deleteDevice();
+                    deleteDevice();
                 }
                 else if(input == 0)
                 {

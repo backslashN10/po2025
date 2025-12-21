@@ -1,7 +1,7 @@
 package pl.edu.agh.po;
 
 public enum DeviceStatus {
-    AVAIBLE,
+    AVAILABLE,
     BROKEN,
     MAINTANCE,
     IN_USE

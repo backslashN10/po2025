@@ -40,10 +40,102 @@ public class View {
     public void showMessage(String message) {
         System.out.println(message);
     }
-    public void addNewDevice()
-    {
-        //some formula to Device object
+    private <T extends Enum<T>> T chooseEnum(String title, T[] values) {
+        System.out.println("Wybierz " + title + ":");
+
+        for (int i = 0; i < values.length; i++) {
+            System.out.println((i + 1) + ". " + values[i]);
+        }
+
+        int choice = -1;
+        while (choice < 1 || choice > values.length) {
+            System.out.print("Twój wybór: ");
+            if (scanner.hasNextInt()) {
+                choice = scanner.nextInt();
+            } else {
+                scanner.next();
+            }
+        }
+        scanner.nextLine(); // spalanie enter
+
+        return values[choice - 1];
     }
+    public DeviceType getType() {
+        return chooseEnum("TYP", DeviceType.values());
+    }
+
+    public DeviceStatus getStatus() {
+        return chooseEnum("STATUS", DeviceStatus.values());
+    }
+
+
+
+    /// TU JEST ZMIANA KONFIGURACJI URZADZENIA
+//    public long getDeviceIdForConfigChange() {
+//        System.out.print("Podaj ID urządzenia: ");
+//        while (!scanner.hasNextLong()) {
+//            scanner.next();
+//            System.out.print("Podaj poprawne ID: ");
+//        }
+//        long id = scanner.nextLong();
+//        scanner.nextLine();
+//        return id;
+//    }
+//
+//    public String getNewConfiguration() {
+//        System.out.println("Podaj nową konfigurację:");
+//        return scanner.nextLine();
+//    }
+/// /
+/// ///
+
+
+public long getDeviceIdToDelete() {
+    System.out.print("Podaj ID urządzenia do usunięcia: ");
+    while (!scanner.hasNextLong()) {
+        scanner.next();
+        System.out.print("Podaj poprawne ID: ");
+    }
+    long id = scanner.nextLong();
+    scanner.nextLine(); // spal ENTER
+    return id;
+}
+    public Device getDataNewDevice()
+    {
+        DeviceType type = getType();
+        DeviceStatus status = getStatus();
+
+        System.out.print("Podaj model urządzenia: ");
+        String model = scanner.nextLine();
+
+        System.out.print("Podaj hostname: ");
+        String hostname = scanner.nextLine();
+
+        int ethernetCount = -1;
+        while (ethernetCount < 0) {
+            System.out.print("Podaj liczbę interfejsów Ethernet: ");
+            if (scanner.hasNextInt()) {
+                ethernetCount = scanner.nextInt();
+            } else {
+                scanner.next(); // ignoruj błędne dane
+            }
+        }
+        scanner.nextLine(); // spal ENTER
+
+        System.out.print("Podaj konfigurację urządzenia: ");
+        String configuration = scanner.nextLine();
+
+        return new Device(
+                type,
+                status,
+                model,
+                hostname,
+                ethernetCount,
+                configuration
+        );
+    }
+
+
     public int showMenuLogin()
     {
         System.out.println(CLIStyle.blue("=== SIEMA ==="));

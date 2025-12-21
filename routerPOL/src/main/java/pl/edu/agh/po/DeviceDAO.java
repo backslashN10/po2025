@@ -94,7 +94,7 @@ public class DeviceDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return devices;
     }
     public void deleteByID(long id){
         String sql = "DELETE FROM devices WHERE id = ?";
@@ -128,6 +128,8 @@ public class DeviceDAO {
             pstmt.setString(4, device.getHostName());
             pstmt.setInt(5, device.getNumberOfEthernetInterfaces());
             pstmt.setString(6, device.getConfiguration());
+            pstmt.executeUpdate();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
