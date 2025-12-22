@@ -1,5 +1,6 @@
 package pl.edu.agh.po;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class View {
@@ -10,28 +11,135 @@ public class View {
         System.out.println(CLIStyle.blue("=== MENU ADMINA ==="));
         System.out.println(CLIStyle.green("1. Dodaj użytkownika"));
         System.out.println("2. Zablokuj użytkownika");
+        System.out.println("3. Wyloguj");
         System.out.println(CLIStyle.red("0. Wyjście"));
         int choice = scanner.nextInt();
         scanner.nextLine();
         return choice;
     }
-    public int showDB()
-    {
-        //show db in some way arraylist or as you want
-        return 0;
+    public void showUsers(List<User> users) {
+        System.out.println("=== Lista użytkowników ===");
+        for (User user : users) {
+            System.out.println(
+                    "ID: " + user.getID() +
+                            ", login: " + user.getUsername() +
+                            ", rola: " + user.getRole()
+            );
+        }
     }
+    public void showDevices(List<Device> devices)
+    {
+        System.out.println("=== Lista urządzeń ===");
+        for(Device device : devices)
+        {
+            System.out.println("-------------------------------");
+            System.out.println("ID: " + device.getId());
+            System.out.println("Typ: " + device.getType());
+            System.out.println("Status: " + device.getStatus());
+            System.out.println("Model: " + device.getModel());
+            System.out.println("Hostname: " + device.getHostName());
+            System.out.println("Liczba interfejsów Ethernet: " + device.getNumberOfEthernetInterfaces());
+            System.out.println("Konfiguracja: " + device.getConfiguration());
+        }
+        System.out.println("-------------------------------");
+    }
+
     public void defaultOption()
     {
         System.out.println("Niepoprawna opcja");
     }
-    public void blockUser()
+    public String blockUser()
     {
-        //blocking
+        System.out.println("Podaj username kogo chcesz zablokowac");
+        String username = scanner.nextLine();
+        return username;
+
     }
-    public void addNewDevice()
+    public void showMessage(String message) {
+        System.out.println(message);
+    }
+    private <T extends Enum<T>> T chooseEnum(String title, T[] values) {
+        System.out.println("Wybierz " + title + ":");
+
+        for (int i = 0; i < values.length; i++) {
+            System.out.println((i + 1) + ". " + values[i]);
+        }
+
+        int choice = -1;
+        while (choice < 1 || choice > values.length) {
+            System.out.print("Twój wybór: ");
+            if (scanner.hasNextInt()) {
+                choice = scanner.nextInt();
+            } else {
+                scanner.next();
+            }
+        }
+        scanner.nextLine(); // spalanie enter
+
+        return values[choice - 1];
+    }
+    public DeviceType getType() {
+        return chooseEnum("TYP", DeviceType.values());
+    }
+
+    public DeviceStatus getStatus() {
+        return chooseEnum("STATUS", DeviceStatus.values());
+    }
+
+    public String getNewConfiguration() {
+        System.out.println("Podaj nową konfigurację:");
+        return scanner.nextLine();
+    }
+
+
+
+
+public long getDeviceId() {
+    System.out.print("Podaj ID urządzenia: ");
+    while (!scanner.hasNextLong()) {
+        scanner.next();
+        System.out.print("Podaj poprawne ID: ");
+    }
+    long id = scanner.nextLong();
+    scanner.nextLine(); // spal ENTER
+    return id;
+}
+    public Device getDataNewDevice()
     {
-        //some formula to Device object
+        DeviceType type = getType();
+        DeviceStatus status = getStatus();
+
+        System.out.print("Podaj model urządzenia: ");
+        String model = scanner.nextLine();
+
+        System.out.print("Podaj hostname: ");
+        String hostname = scanner.nextLine();
+
+        int ethernetCount = -1;
+        while (ethernetCount < 0) {
+            System.out.print("Podaj liczbę interfejsów Ethernet: ");
+            if (scanner.hasNextInt()) {
+                ethernetCount = scanner.nextInt();
+            } else {
+                scanner.next(); // ignoruj błędne dane
+            }
+        }
+        scanner.nextLine(); // spal ENTER
+
+        System.out.print("Podaj konfigurację urządzenia: ");
+        String configuration = scanner.nextLine();
+
+        return new Device(
+                type,
+                status,
+                model,
+                hostname,
+                ethernetCount,
+                configuration
+        );
     }
+
+
     public int showMenuLogin()
     {
         System.out.println(CLIStyle.blue("=== SIEMA ==="));
@@ -41,13 +149,32 @@ public class View {
         scanner.nextLine();
         return choice;
     }
-    public LoginData showLoginProcess()
+    public LoginData getLoginProcess()
     {
         System.out.print("Login: ");
         String login = scanner.nextLine();
         System.out.print("Hasło: ");
         String password = scanner.nextLine();
         return new LoginData(login, password);
+    }
+    public UserRole getRole() {
+        System.out.println("Wybierz rolę:");
+        UserRole[] roles = UserRole.values();
+        for (int i = 0; i < roles.length; i++) {
+            System.out.println((i + 1) + ". " + roles[i]);
+        }
+
+        int choice = -1;
+        while (choice < 1 || choice > roles.length) {
+            System.out.print("Twój wybór: ");
+            if (scanner.hasNextInt()) {
+                choice = scanner.nextInt();
+            } else {
+                scanner.next(); // ignoruje złe dane
+            }
+        }
+        scanner.nextLine();
+        return roles[choice - 1];
     }
     public int showMenuCEO()
     {
@@ -60,22 +187,7 @@ public class View {
         scanner.nextLine();
         return choice;
     }
-    public int makeRaport()
-    {
-        System.out.println("1. Raport miesięczny");
-        System.out.println("2. Raport roczny");
-        int choice = scanner.nextInt();
-        scanner.nextLine();
-        return choice;
-    }
-    public void showMenuSUDO(String password)
-    {
-        System.out.println("=================================");
-        System.out.println("UTWORZONO KONTO ADMINA");
-        System.out.println("login: admin");
-        System.out.println("hasło: " + password);
-        System.out.println("=================================");
-    }
+
     public int showMenuTechnician()
     {
         System.out.println("=================================");
@@ -83,24 +195,20 @@ public class View {
         System.out.println("1. Dodaj nowe Urządzenie");
         System.out.println("2. Zmień konfigurację ");
         System.out.println("3. Usuń urządzenie ");
+        System.out.println("4. Pokaż bazę urządzeń ");
+        System.out.println("5. Wyloguj");
         System.out.println("0. Wyjście");
         int choice = scanner.nextInt();
         scanner.nextLine();
         return choice;
 
     }
-    public void showAddUser()
-    {
-        //adding user xd how to mozliwe
-    }
+
     public void changeConfig()
     {
         //also some formula
 
     }
-    public void deleteDevice()
-    {
-        //some formula
-    }
+
 
 }

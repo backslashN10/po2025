@@ -18,6 +18,15 @@ public class Device {
         this.numberOfEthernetInterfaces = numberOfEthernetInterfaces;
         this.configuration = configuration;
     }
+    //do dodawania nowych JESLI DEVICE MA AUTOINCREMENT CZEGO NWM bo mi sie nie chcialo sprawdzic
+    public Device(DeviceType type, DeviceStatus status, String model, String hostname, int numberOfEthernetInterfaces, String configuration){
+        this.type = type;
+        this.status = status;
+        this.model = model;
+        this.hostName = hostname;
+        this.numberOfEthernetInterfaces = numberOfEthernetInterfaces;
+        this.configuration = configuration;
+    }
     public long getId(){
         return id;
     }
@@ -38,5 +47,8 @@ public class Device {
     }
     public String getConfiguration(){
         return configuration;
+    }
+    public void setConfiguration(String configuration){
+        this.configuration = configuration;
     }
 }
