@@ -7,3 +7,8 @@ czy wszystko dziala itd, drugi pomysl to wspolbiezne zapytania do bazy danych
 - symulacja awarii urzadzen po jakims czasie czy cos
 - logi(co,kto,kiedy, z jakiego ip)
 - historia zmian
+- uzycie findby status i findby type dla devices
+- uzycie find by id, find by role dla userow
+- biedny backup ;((((
+- ogarniecie unique constraint jak sie odpala
+- fajnie jakby pokazywalo kto jest zalogowany

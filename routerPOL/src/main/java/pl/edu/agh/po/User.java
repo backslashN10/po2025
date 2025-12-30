@@ -29,7 +29,5 @@ public class User {
     public UserRole getRole(){
         return role;
     }
-//    public void setID(long id) {
-//        this.id = id;
-//    }
+
 }
