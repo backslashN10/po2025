@@ -53,4 +53,9 @@ public class Car {
 	public Engine getEngine() {
 		return engine;
 	}
+
+	@Override
+	public String toString() {
+		return model;
+	}
 }
