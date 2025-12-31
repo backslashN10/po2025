@@ -1,0 +1,166 @@
+@startuml
+
+class pl.edu.agh.po.AuthenticationService {
+	{method} +login ( paramString1 : String , paramString2 : String ) : boolean
+	{method} +logout () : void
+}
+
+
+class pl.edu.agh.po.BusinessManager {
+	{method} +generateFullRaport () : String
+}
+
+
+class pl.edu.agh.po.CLIStyle {
+	{method}  {static} +blue ( paramString1 : String ) : String
+	{method}  {static} +green ( paramString1 : String ) : String
+	{method}  {static} +red ( paramString1 : String ) : String
+	{method}  {static} +yellow ( paramString1 : String ) : String
+}
+
+
+class pl.edu.agh.po.Controller {
+	{field} -isRunning : boolean
+	{method} +addDevice () : void
+	{method} +addUser () : void
+	{method} +blockUser () : void
+	{method} +changeDeviceConfiguration () : void
+	{method} +deleteDevice () : void
+	{method} +handleShow () : void
+	{method} +handleUserLogin () : void
+	{method} +makeRaport () : void
+	{method} +quit () : void
+	{method} +showAllDevices () : void
+	{method} +showAllUsers () : void
+	{method} +start () : void
+}
+
+
+class pl.edu.agh.po.Device {
+	{field} +configuration : String
+	{field} -hostName : String
+	{field} -id : long
+	{field} -model : String
+	{field} -numberOfEthernetInterfaces : int
+}
+
+
+class pl.edu.agh.po.DeviceDAO {
+	{field} {static} -connection : java.sql.Connection
+	{method} -createTable () : void
+	{method} +deleteByID ( paramlong1 : long ) : void
+	{method} +findAll () : java.util.List
+	{method} +findByID ( paramlong1 : long ) : pl.edu.agh.po.Device
+	{method} +findByStatus ( paramDeviceStatus1 : pl.edu.agh.po.DeviceStatus ) : pl.edu.agh.po.Device
+	{method} +findByType ( paramDeviceType1 : pl.edu.agh.po.DeviceType ) : pl.edu.agh.po.Device
+	{method} +save ( paramDevice1 : pl.edu.agh.po.Device ) : void
+	{method} +updateData ( paramDevice1 : pl.edu.agh.po.Device ) : void
+}
+
+
+enum pl.edu.agh.po.DeviceStatus {
+	{field} +AVAILABLE
+	{field} +BROKEN
+	{field} +IN_USE
+	{field} +MAINTANCE
+}
+
+
+enum pl.edu.agh.po.DeviceType {
+	{field} +ACCESS_POINT
+	{field} +ROUTER
+	{field} +SWITCH
+}
+
+
+class pl.edu.agh.po.LoginData {
+	{field} -password : String
+	{field} -username : String
+}
+
+
+class pl.edu.agh.po.Main {
+	{method}  {static} +main ( paramString;1 : [Ljava.lang.String; ) : void
+}
+
+
+class pl.edu.agh.po.PasswordEncryption {
+	{method}  {static} +hash ( paramString1 : String ) : String
+	{method}  {static} +verify ( paramString1 : String , paramString2 : String ) : boolean
+}
+
+
+class pl.edu.agh.po.User {
+	{field} -id : long
+	{field} -password : String
+	{field} -username : String
+}
+
+
+class pl.edu.agh.po.UserDAO {
+	{field} {static} -connection : java.sql.Connection
+	{method} -createTable () : void
+	{method} +deleteByID ( paramlong1 : long ) : void
+	{method} +findALL () : java.util.List
+	{method} +findByID ( paramlong1 : long ) : pl.edu.agh.po.User
+	{method} +findByRole ( paramUserRole1 : pl.edu.agh.po.UserRole ) : pl.edu.agh.po.User
+	{method} +findByUsername ( paramString1 : String ) : pl.edu.agh.po.User
+	{method} +save ( paramUser1 : pl.edu.agh.po.User ) : void
+	{method} +updateData ( paramUser1 : pl.edu.agh.po.User ) : void
+}
+
+
+enum pl.edu.agh.po.UserRole {
+	{field} +ADMIN
+	{field} +CEO
+	{field} +TECHNICIAN
+}
+
+
+class pl.edu.agh.po.Utilities {
+	{method} +backupDatabase () : void
+}
+
+
+class pl.edu.agh.po.View {
+	{field} -scanner : java.util.Scanner
+	{method} +blockUser () : String
+	{method} -chooseEnum ( paramString1 : String , paramEnum;2 : [Ljava.lang.Enum; ) : Enum
+	{method} +defaultOption () : void
+	{method} +getDataNewDevice () : pl.edu.agh.po.Device
+	{method} +getDeviceId () : long
+	{method} +getLoginProcess () : pl.edu.agh.po.LoginData
+	{method} +getNewConfiguration () : String
+	{method} +getRole () : pl.edu.agh.po.UserRole
+	{method} +getStatus () : pl.edu.agh.po.DeviceStatus
+	{method} +getType () : pl.edu.agh.po.DeviceType
+	{method} +showDevices ( paramList1 : java.util.List ) : void
+	{method} +showMenuAdmin () : int
+	{method} +showMenuCEO () : int
+	{method} +showMenuLogin () : int
+	{method} +showMenuTechnician () : int
+	{method} +showMessage ( paramString1 : String ) : void
+	{method} +showUsers ( paramList1 : java.util.List ) : void
+}
+
+
+
+
+pl.edu.agh.po.AuthenticationService -->  pl.edu.agh.po.AuthenticationService : instance
+pl.edu.agh.po.AuthenticationService -->  pl.edu.agh.po.User : currentUser
+pl.edu.agh.po.AuthenticationService -->  pl.edu.agh.po.UserDAO : userDAO
+pl.edu.agh.po.BusinessManager -->  pl.edu.agh.po.BusinessManager : instance
+pl.edu.agh.po.Controller -->  pl.edu.agh.po.AuthenticationService : authService
+pl.edu.agh.po.Controller -->  pl.edu.agh.po.BusinessManager : businessManager
+pl.edu.agh.po.Controller -->  pl.edu.agh.po.DeviceDAO : deviceDAO
+pl.edu.agh.po.Controller -->  pl.edu.agh.po.UserDAO : userDAO
+pl.edu.agh.po.Controller -->  pl.edu.agh.po.View : view
+pl.edu.agh.po.Device -->  pl.edu.agh.po.DeviceStatus : status
+pl.edu.agh.po.Device -->  pl.edu.agh.po.DeviceType : type
+pl.edu.agh.po.DeviceDAO -->  pl.edu.agh.po.DeviceDAO : instance
+pl.edu.agh.po.User -->  pl.edu.agh.po.UserRole : role
+pl.edu.agh.po.UserDAO -->  pl.edu.agh.po.UserDAO : instance
+pl.edu.agh.po.Utilities -->  pl.edu.agh.po.Utilities : instance
+
+
+@enduml
