@@ -104,7 +104,6 @@ public class CarSimulatorController {
     private List<Car> carList;
     private AnimationTimer animationTimer;
     private Position targetPosition;
-    private long lastUpdate;
 
     @FXML
     public void initialize() {
@@ -170,7 +169,6 @@ public class CarSimulatorController {
         });
 
         targetPosition = null;
-        lastUpdate = 0;
 
         animationTimer = new AnimationTimer() {
             @Override
