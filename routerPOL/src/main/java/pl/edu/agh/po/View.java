@@ -91,9 +91,6 @@ public class View {
         return scanner.nextLine();
     }
 
-
-
-
 public long getDeviceId() {
     System.out.print("Podaj ID urządzenia: ");
     while (!scanner.hasNextLong()) {
@@ -101,7 +98,7 @@ public long getDeviceId() {
         System.out.print("Podaj poprawne ID: ");
     }
     long id = scanner.nextLong();
-    scanner.nextLine(); // spal ENTER
+    scanner.nextLine();
     return id;
 }
     public Device getDataNewDevice()
@@ -121,10 +118,10 @@ public long getDeviceId() {
             if (scanner.hasNextInt()) {
                 ethernetCount = scanner.nextInt();
             } else {
-                scanner.next(); // ignoruj błędne dane
+                scanner.next();
             }
         }
-        scanner.nextLine(); // spal ENTER
+        scanner.nextLine();
 
         System.out.print("Podaj konfigurację urządzenia: ");
         String configuration = scanner.nextLine();
@@ -170,7 +167,7 @@ public long getDeviceId() {
             if (scanner.hasNextInt()) {
                 choice = scanner.nextInt();
             } else {
-                scanner.next(); // ignoruje złe dane
+                scanner.next();
             }
         }
         scanner.nextLine();
@@ -203,12 +200,5 @@ public long getDeviceId() {
         return choice;
 
     }
-
-    public void changeConfig()
-    {
-        //also some formula
-
-    }
-
 
 }

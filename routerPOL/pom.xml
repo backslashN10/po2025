@@ -72,6 +72,31 @@
           <mainClass>pl.edu.agh.po.Main</mainClass>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>de.elnarion.maven</groupId>
+        <artifactId>plantuml-generator-maven-plugin</artifactId>
+        <version>1.6.0</version>
+        <executions>
+          <execution>
+            <id>generate-class-diagram</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <phase>compile</phase>
+            <configuration>
+              <outputDirectory>${project.basedir}/docs/diagrams</outputDirectory>
+              <outputFilename>class-diagram.puml</outputFilename>
+              <scanPackages>
+                <scanPackage>pl.edu.agh.po</scanPackage>
+              </scanPackages>
+              <hideFields>false</hideFields>
+              <hideMethods>false</hideMethods>
+              <removeFields>false</removeFields>
+              <removeMethods>false</removeMethods>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
       <plugins>

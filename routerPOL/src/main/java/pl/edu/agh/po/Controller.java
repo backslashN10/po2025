@@ -27,8 +27,8 @@ public class Controller
         isRunning = false;
     }
     public void addDevice() {
-        Device device = view.getDataNewDevice();
-        deviceDAO.save(device);
+        Device newDevice = view.getDataNewDevice();
+        deviceDAO.save(newDevice);
         view.showMessage("Urządzenie dodane poprawnie.");
     }
     public void addUser() {
@@ -40,7 +40,7 @@ public class Controller
 
         User newUser = new User(username, password, role);
         userDAO.save(newUser); // zapis do repozytorium/listy
-        System.out.println("Użytkownik dodany: " + newUser.getUsername());
+        view.showMessage("Użytkownik dodany: " + newUser.getUsername());
     }
     public void showAllUsers() {
         List<User> users = userDAO.findALL();
@@ -75,18 +75,18 @@ public class Controller
     public void deleteDevice()
     {
         long id = view.getDeviceId();
-
+        //tu trzeba dodac obsluge ze uzytkownik wpisze typ albo status
         Device device = deviceDAO.findByID(id);
         if (device == null) {
             view.showMessage("Nie znaleziono urządzenia o ID: " + id);
             return;
         }
-
         deviceDAO.deleteByID(id);
-        view.showMessage("Urządzenie zostało usunięte.");
+        view.showMessage("Urządzenie zostało usunięte o ID: " + id);
     }
     public void changeDeviceConfiguration() {
         long id = view.getDeviceId();
+        //tu trzeba dodac obsluge ze uzytkownik wpisze typ albo status
         Device device = deviceDAO.findByID(id);
         if (device == null) {
             view.showMessage("Nie znaleziono urządzenia o ID: " + id);
@@ -97,7 +97,7 @@ public class Controller
 
         deviceDAO.updateData(device);
 
-        view.showMessage("Konfiguracja urządzenia została zmieniona.");
+        view.showMessage("Konfiguracja urządzenia została zmieniona o ID: " + id);
     }
 
 
@@ -145,7 +145,6 @@ public class Controller
                 }
                 else if(input == 2)
                 {
-                    //jesli jest device to mozna w raportif()
                     makeRaport();
                 }
                 else if(input == 3)
@@ -191,11 +190,13 @@ public class Controller
     {
         String username = view.blockUser();
         User user = userDAO.findByUsername(username);
+        //obsluga wyszukiwania po roli i id
         if(user == null)
         {
             view.showMessage("Użytkownik o loginie " + username + " nie istnieje.");
             return;
         }
+        view.showMessage("Użytkownik o loginie " + username + " został usunięty.");
         userDAO.deleteByID(user.getID());
     }
     public void handleUserLogin()
@@ -203,9 +204,9 @@ public class Controller
         LoginData data = view.getLoginProcess();
         boolean success = authService.login(data.getUsername(), data.getPassword());
         if (success) {
-            System.out.println("Logowanie udane\n");
+            view.showMessage("Logowanie udane\n");
         } else {
-            System.out.println("Logowanie nieudane.\n");
+            view.showMessage("Logowanie nieudane.\n");
         }
     }
 
