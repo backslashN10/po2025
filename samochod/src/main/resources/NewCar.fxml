@@ -4,114 +4,44 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="600" prefWidth="800" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="po.NewCarController">
+<BorderPane prefHeight="400" prefWidth="500" stylesheets="@style2000.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="po.NewCarController">
 
     <top>
-        <HBox alignment="CENTER" spacing="10" style="-fx-padding: 15; -fx-background-color: linear-gradient(to right, #4CAF50 0%, #2196F3 100%);">
-            <Label text="KONFIGURACJA NOWEGO SAMOCHODU" style="-fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: white;" />
+        <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 12; -fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1px 0;">
+            <Label text="Nowy samochód" style="-fx-font-weight: 600; -fx-font-size: 14px;" />
         </HBox>
     </top>
 
     <center>
-        <ScrollPane fitToWidth="true" fitToHeight="true">
-            <VBox spacing="20" style="-fx-padding: 20;">
+        <VBox spacing="15" style="-fx-padding: 20; -fx-background-color: white;">
 
-                <TitledPane text="Podstawowe Dane" collapsible="false" expanded="true">
-                    <GridPane hgap="10" vgap="15" style="-fx-padding: 15;">
-                        <Label text="Model:" GridPane.columnIndex="0" GridPane.rowIndex="0" style="-fx-font-weight: bold;" />
-                        <TextField fx:id="modelField" promptText="np. BMW M3" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="250" />
-
-                        <Label text="Nr rejestracyjny:" GridPane.columnIndex="0" GridPane.rowIndex="1" style="-fx-font-weight: bold;" />
-                        <TextField fx:id="registrationField" promptText="np. 123" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="250" />
-
-                        <Label text="Predkosc max (km/h):" GridPane.columnIndex="0" GridPane.rowIndex="2" style="-fx-font-weight: bold;" />
-                        <TextField fx:id="maxSpeedField" promptText="np. 250" GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="250" />
-                    </GridPane>
-                </TitledPane>
-
-                <TitledPane text="Sprzeglo" collapsible="false" expanded="true">
-                    <VBox spacing="10" style="-fx-padding: 15;">
-                        <RadioButton fx:id="clutch1Radio" text="Sprzeglo Standard (200 zl, 757 kg)" toggleGroup="$clutchGroup" selected="true" />
-                        <RadioButton fx:id="clutch2Radio" text="Sprzeglo Sport (300 zl, 1200 kg)" toggleGroup="$clutchGroup" />
-                        <RadioButton fx:id="clutch3Radio" text="Sprzeglo Racing (250 zl, 900 kg)" toggleGroup="$clutchGroup" />
-
-                        <Separator />
-
-                        <Label text="Sprzeglo niestandardowe:" style="-fx-font-weight: bold; -fx-font-style: italic;" />
-                        <GridPane hgap="10" vgap="10">
-                            <Label text="Nazwa:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                            <TextField fx:id="customClutchName" promptText="Nazwa" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="150" />
-
-                            <Label text="Cena:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                            <TextField fx:id="customClutchPrice" promptText="zl" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="150" />
-
-                            <Label text="Waga:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                            <TextField fx:id="customClutchWeight" promptText="kg" GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="150" />
-                        </GridPane>
-                    </VBox>
-                </TitledPane>
-
-                <TitledPane text="Skrzynia Biegow" collapsible="false" expanded="true">
-                    <VBox spacing="10" style="-fx-padding: 15;">
-                        <RadioButton fx:id="gearbox1Radio" text="Skrzynia 2-biegowa (100 zl, 212 kg, przelozenia: 800, 1000, 3000)" toggleGroup="$gearboxGroup" selected="true" />
-                        <RadioButton fx:id="gearbox2Radio" text="Skrzynia 5-biegowa (150 zl, 350 kg, przelozenia: 800, 1200, 2000, 3500, 5000, 7000)" toggleGroup="$gearboxGroup" />
-                        <RadioButton fx:id="gearbox3Radio" text="Skrzynia 6-biegowa (120 zl, 280 kg, przelozenia: 800, 1500, 2200, 3200, 4500, 6000, 8000)" toggleGroup="$gearboxGroup" />
-
-                        <Separator />
-
-                        <Label text="Skrzynia niestandardowa:" style="-fx-font-weight: bold; -fx-font-style: italic;" />
-                        <GridPane hgap="10" vgap="10">
-                            <Label text="Nazwa:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                            <TextField fx:id="customGearboxName" promptText="Nazwa" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="150" />
-
-                            <Label text="Cena:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                            <TextField fx:id="customGearboxPrice" promptText="zl" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="150" />
-
-                            <Label text="Waga:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                            <TextField fx:id="customGearboxWeight" promptText="kg" GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="150" />
-
-                            <Label text="Liczba biegow:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-                            <TextField fx:id="customGearboxGears" promptText="np. 5" GridPane.columnIndex="1" GridPane.rowIndex="3" prefWidth="150" />
-
-                            <Label text="Przelozenia (przez przecinek):" GridPane.columnIndex="0" GridPane.rowIndex="4" />
-                            <TextField fx:id="customGearboxRatios" promptText="np. 800,1200,2000" GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="200" />
-                        </GridPane>
-                    </VBox>
-                </TitledPane>
-
-                <TitledPane text="Silnik" collapsible="false" expanded="true">
-                    <VBox spacing="10" style="-fx-padding: 15;">
-                        <RadioButton fx:id="engine1Radio" text="Silnik Standard (2431 zl, 32 kg, 5000 RPM max)" toggleGroup="$engineGroup" selected="true" />
-                        <RadioButton fx:id="engine2Radio" text="Silnik Sport (3500 zl, 50 kg, 8000 RPM max)" toggleGroup="$engineGroup" />
-                        <RadioButton fx:id="engine3Radio" text="Silnik Racing (4200 zl, 60 kg, 9000 RPM max)" toggleGroup="$engineGroup" />
-
-                        <Separator />
-
-                        <Label text="Silnik niestandardowy:" style="-fx-font-weight: bold; -fx-font-style: italic;" />
-                        <GridPane hgap="10" vgap="10">
-                            <Label text="Nazwa:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                            <TextField fx:id="customEngineName" promptText="Nazwa" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="150" />
-
-                            <Label text="Cena:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                            <TextField fx:id="customEnginePrice" promptText="zl" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="150" />
-
-                            <Label text="Waga:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                            <TextField fx:id="customEngineWeight" promptText="kg" GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="150" />
-
-                            <Label text="Maksymalne obroty:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-                            <TextField fx:id="customEngineMaxRpm" promptText="RPM" GridPane.columnIndex="1" GridPane.rowIndex="3" prefWidth="150" />
-                        </GridPane>
-                    </VBox>
-                </TitledPane>
-
+            <VBox spacing="8">
+                <Label text="Model:" style="-fx-font-weight: 600;" />
+                <TextField fx:id="modelField" promptText="np. BMW M3" />
             </VBox>
-        </ScrollPane>
+
+            <VBox spacing="8">
+                <Label text="Nr rejestracyjny:" style="-fx-font-weight: 600;" />
+                <TextField fx:id="registrationField" promptText="np. 123" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label text="Prędkość max (km/h):" style="-fx-font-weight: 600;" />
+                <TextField fx:id="maxSpeedField" promptText="np. 250" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label text="Max RPM:" style="-fx-font-weight: 600;" />
+                <TextField fx:id="maxRpmField" promptText="np. 8000" />
+            </VBox>
+
+        </VBox>
     </center>
 
     <bottom>
-        <HBox alignment="CENTER" spacing="20" style="-fx-padding: 20; -fx-background-color: #f0f0f0;">
-            <Button text="DODAJ SAMOCHOD" onAction="#handleAddCar" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-color: #4CAF50; -fx-text-fill: white; -fx-padding: 10 30;" />
-            <Button text="ANULUJ" onAction="#handleCancel" style="-fx-font-size: 14px; -fx-background-color: #f44336; -fx-text-fill: white; -fx-padding: 10 30;" />
+        <HBox alignment="CENTER" spacing="15" style="-fx-padding: 15; -fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-width: 1px 0 0 0;">
+            <Button fx:id="addButton" text="Dodaj" onAction="#handleAddCar" prefWidth="100" />
+            <Button text="Anuluj" onAction="#handleCancel" prefWidth="100" />
         </HBox>
     </bottom>
 

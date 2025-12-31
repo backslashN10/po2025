@@ -252,7 +252,27 @@ private void updateCarVisualization() {
 
     @FXML
     private void handleAddCar() {
-        //to do 
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/NewCar.fxml"));
+            javafx.scene.Parent root = loader.load();
+
+            NewCarController controller = loader.getController();
+
+            javafx.stage.Stage stage = new javafx.stage.Stage();
+            stage.setTitle("Dodaj nowy samochód");
+            stage.setScene(new javafx.scene.Scene(root));
+            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+
+            Car newCar = controller.getCreatedCar();
+            if (newCar != null) {
+                carList.add(newCar);
+                carSelector.getItems().add(newCar);
+                carSelector.setValue(newCar);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
