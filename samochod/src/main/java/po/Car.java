@@ -8,6 +8,7 @@ public class Car {
 	private Gearbox gearbox;
 	private Engine engine;
 	private Position position;
+	private Position targetPosition;
 
 	public Car(int registrationNumber, String model, double maxSpeed, Gearbox gearbox, Engine engine, Position position) {
 		currentState = false;
@@ -17,6 +18,7 @@ public class Car {
 		this.gearbox = gearbox;
 		this.engine = engine;
 		this.position = position;
+		this.targetPosition = null;
 	}
 	public void start() {
 		currentState = true;
@@ -27,7 +29,21 @@ public class Car {
 		engine.stop();
 	}
 	public void driveTo(Position endPosition) {
-		this.position.move(endPosition, getSpeed(), 0.001);
+		this.position.move(endPosition, getSpeed(), 0.016);
+	}
+
+	public void setTargetPosition(Position target) {
+		this.targetPosition = target;
+	}
+
+	public Position getTargetPosition() {
+		return targetPosition;
+	}
+
+	public void update() {
+		if (targetPosition != null) {
+			driveTo(targetPosition);
+		}
 	}
 	public double getWeight() {
 		return engine.getWeight() + gearbox.getWeight() + gearbox.getClutch().getWeight();

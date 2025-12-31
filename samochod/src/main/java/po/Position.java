@@ -8,8 +8,8 @@ public class Position {
 		this.x = x;
 		this.y = y;
 	}
-	public void move(Position targetPosition, double speed, double dt) {
-		double epsilon = 0.01;
+	public synchronized void move(Position targetPosition, double speed, double dt) {
+		double epsilon = 2.0;
 		double deltaX = targetPosition.getX() - x;
 		double deltaY = targetPosition.getY() - y;
 		double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -29,10 +29,10 @@ public class Position {
 			y = y + ny * step;
 		}
 	}
-	public double getX() {
+	public synchronized double getX() {
 		return x;
 	}
-	public double getY() {
+	public synchronized double getY() {
 		return y;
 	}
 }

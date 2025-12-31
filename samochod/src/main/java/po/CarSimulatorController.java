@@ -1,7 +1,9 @@
 package po;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
@@ -102,47 +104,56 @@ public class CarSimulatorController {
     private Engine engine;
     private Circle carIcon;
     private List<Car> carList;
+    private Map<Car, CarSimulationThread> carThreads;
     private AnimationTimer animationTimer;
-    private Position targetPosition;
 
     @FXML
     public void initialize() {
         carList = new ArrayList<>();
-        Position start = new Position(0, 0);
+        carThreads = new HashMap<>();
 
-        Clutch defaultClutch1 = new Clutch("defaultClutch1", 200, 777);
-        Gearbox defaultGearbox1 = new Gearbox("defaultGearbox1", 200, 888, 2, defaultClutch1,
-                new double[]{0.08, 0.09, 0.1});
-        Engine defaultEngine1 = new Engine("defaultEngine1", 400, 999, 5000);
-        Car defaultCar1 = new Car(126, "defaultCar1", 120, defaultGearbox1, defaultEngine1, start);
+        Clutch defaultClutch1 = new Clutch("Standard Clutch", 200, 777);
+        Gearbox defaultGearbox1 = new Gearbox("3-Speed Gearbox", 200, 888, 3, defaultClutch1,
+                new double[]{0.005, 0.015, 0.025, 0.035});
+        Engine defaultEngine1 = new Engine("City Engine", 400, 999, 5000);
+        Car defaultCar1 = new Car(126, "City Car", 120, defaultGearbox1, defaultEngine1, new Position(0, 0));
 
-        Clutch defaultClutch2 = new Clutch("defaultClutch2", 300, 1200);
-        Gearbox defaultGearbox2 = new Gearbox("defaultGearbox2", 150, 350, 5, defaultClutch2,
-                new double[]{800, 1200, 2000, 3500, 5000, 7000});
-        Engine defaultEngine2 = new Engine("defaultEngine2", 3500, 50, 8000);
-        Car defaultCar2 = new Car(420, "defaultCar2", 280, defaultGearbox2, defaultEngine2, start);
+        Clutch defaultClutch2 = new Clutch("Sport Clutch", 300, 1200);
+        Gearbox defaultGearbox2 = new Gearbox("5-Speed Gearbox", 150, 350, 5, defaultClutch2,
+                new double[]{0.005, 0.010, 0.018, 0.025, 0.032, 0.040});
+        Engine defaultEngine2 = new Engine("Sport Engine", 3500, 50, 8000);
+        Car defaultCar2 = new Car(420, "Sport Car", 280, defaultGearbox2, defaultEngine2, new Position(0, 0));
 
-        Clutch defaultClutch3 = new Clutch("defaultClutch3", 250, 900);
-        Gearbox defaultGearbox3 = new Gearbox("defaultGearbox3", 120, 280, 6, defaultClutch3,
-                new double[]{800, 1500, 2200, 3200, 4500, 6000, 8000});
-        Engine defaultEngine3 = new Engine("defaultEngine3", 4200, 60, 9000);
-        Car defaultCar3 = new Car(333, "defaultCar3", 250, defaultGearbox3, defaultEngine3, start);
+        Clutch defaultClutch3 = new Clutch("Racing Clutch", 250, 900);
+        Gearbox defaultGearbox3 = new Gearbox("6-Speed Gearbox", 120, 280, 6, defaultClutch3,
+                new double[]{0.005, 0.008, 0.014, 0.020, 0.027, 0.034, 0.042});
+        Engine defaultEngine3 = new Engine("Racing Engine", 4200, 60, 9000);
+        Car defaultCar3 = new Car(333, "Racing Car", 250, defaultGearbox3, defaultEngine3, new Position(0, 0));
 
         carList.add(defaultCar1);
         carList.add(defaultCar2);
         carList.add(defaultCar3);
+
+        for (Car c : carList) {
+            CarSimulationThread thread = new CarSimulationThread(c);
+            carThreads.put(c, thread);
+            thread.start();
+        }
 
         carSelector.getItems().addAll(carList);
         carSelector.setValue(defaultCar1);
 
         carSelector.setOnAction(e -> {
             Car selectedCar = carSelector.getValue();
+            System.out.println("[DEBUG] Switching to car: " + selectedCar.getModel() +
+                              " at position (" + selectedCar.getPosition().getX() + ", " + selectedCar.getPosition().getY() + ")");
             car = selectedCar;
             gearbox = car.getGearbox();
             engine = car.getEngine();
             clutch = gearbox.getClutch();
             modeRadioButton.setSelected(car.getCurrentState());
             updateAllLabels();
+            updateCarVisualization();
         });
         
         car = defaultCar1;
@@ -165,18 +176,12 @@ public class CarSimulatorController {
             double worldX = clickX - width / 2;
             double worldY = height / 2 - clickY;
 
-            targetPosition = new Position(worldX, worldY);
+            car.setTargetPosition(new Position(worldX, worldY));
         });
-
-        targetPosition = null;
 
         animationTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                if (targetPosition != null) {
-                    car.driveTo(targetPosition);
-                }
-
                 updateAllLabels();
                 updateCarVisualization();
             }
@@ -267,6 +272,11 @@ private void updateCarVisualization() {
             Car newCar = controller.getCreatedCar();
             if (newCar != null) {
                 carList.add(newCar);
+
+                CarSimulationThread thread = new CarSimulationThread(newCar);
+                carThreads.put(newCar, thread);
+                thread.start();
+
                 carSelector.getItems().add(newCar);
                 carSelector.setValue(newCar);
             }
@@ -303,6 +313,6 @@ private void updateCarVisualization() {
 
     @FXML
     private void handleDriveTo() {
-        targetPosition = new Position(0, 0);
+        car.setTargetPosition(new Position(0, 0));
     }
 }
