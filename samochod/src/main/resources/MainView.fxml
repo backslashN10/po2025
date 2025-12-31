@@ -9,133 +9,117 @@
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane prefHeight="600" prefWidth="1000" minHeight="500" minWidth="800" stylesheets="@style2000.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="po.CarSimulatorController">
 
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10; -fx-background-color: linear-gradient(to right, #FFD700 0%, #FF69B4 100%); -fx-border-color: #FF00FF; -fx-border-width: 0 0 3px 0; -fx-border-style: ridge;">
-            <Label text="WYBIERZ AUTO:" style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #000080; -fx-effect: dropshadow(gaussian, #FFFF00, 2, 0.9, 1, 1);" />
+        <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 12; -fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1px 0;">
+            <Label text="Wybierz auto:" style="-fx-font-weight: 600;" />
             <ComboBox fx:id="carSelector" promptText="Wybierz auto..." prefWidth="200" />
-            <Button fx:id="addCarButton" text="+ DODAJ" onAction="#handleAddCar" />
+            <Button fx:id="addCarButton" text="Dodaj nowy" onAction="#handleAddCar" />
         </HBox>
     </top>
 
     <center>
         <SplitPane dividerPositions="0.3">
 
-            <VBox spacing="10" styleClass="left-panel" style="-fx-padding: 10;">
+            <VBox spacing="8" styleClass="left-panel" style="-fx-padding: 8;">
 
                 <TitledPane collapsible="false" expanded="true" text="Samochód">
-                    <VBox spacing="6">
-                        <padding>
-                            <Insets bottom="8" left="8" right="8" top="8" />
-                        </padding>
-                        
+                    <VBox spacing="8">
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Model:" />
-                            <Label fx:id="modelSamochoduLabel" style="-fx-font-size: 11px;" text="---" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Model:" />
+                            <Label fx:id="carModelLabel" text="---" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Nr rej.:" />
-                            <Label fx:id="nrRejestracjiLabel" style="-fx-font-size: 11px;" text="---" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Nr rej.:" />
+                            <Label fx:id="registrationNumberLabel" text="---" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Waga:" />
-                            <Label fx:id="wagaSamochoduLabel" style="-fx-font-size: 11px;" text="---" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Waga:" />
+                            <Label fx:id="carWeightLabel" text="---" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Prędkość:" />
-                            <Label fx:id="predkoscLabel" text="0 km/h" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Prędkość:" />
+                            <Label fx:id="speedLabel" text="0 km/h" />
                         </HBox>
                     </VBox>
                 </TitledPane>
 
                 <TitledPane collapsible="false" expanded="true" text="Skrzynia biegów">
-                    <VBox spacing="6">
-                        <padding>
-                            <Insets bottom="8" left="8" right="8" top="8" />
-                        </padding>
-
+                    <VBox spacing="8">
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Nazwa:" />
-                            <Label fx:id="nazwaSkrzyniBiegowLabel" style="-fx-font-size: 11px;" text="---" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Nazwa:" />
+                            <Label fx:id="gearboxNameLabel" text="---" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Cena:" />
-                            <Label fx:id="cenaSkrzyniBiegowLabel" style="-fx-font-size: 11px;" text="---" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Cena:" />
+                            <Label fx:id="gearboxPriceLabel" text="---" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Waga:" />
-                            <Label fx:id="wagaSkrzyniBiegowLabel" style="-fx-font-size: 11px;" text="---" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Waga:" />
+                            <Label fx:id="gearboxWeightLabel" text="---" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Bieg:" />
-                            <Label fx:id="aktualnyBiegLabel" text="N" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Bieg:" />
+                            <Label fx:id="currentGearLabel" text="N" />
                         </HBox>
                     </VBox>
                 </TitledPane>
 
                 <TitledPane collapsible="false" expanded="true" text="Silnik">
-                    <VBox spacing="6">
-                        <padding>
-                            <Insets bottom="8" left="8" right="8" top="8" />
-                        </padding>
-
+                    <VBox spacing="8">
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Nazwa:" />
-                            <Label fx:id="nazwaSilnikaLabel" style="-fx-font-size: 11px;" text="---" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Nazwa:" />
+                            <Label fx:id="engineNameLabel" text="---" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Cena:" />
-                            <Label fx:id="cenaSilnikaLabel" style="-fx-font-size: 11px;" text="---" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Cena:" />
+                            <Label fx:id="enginePriceLabel" text="---" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Waga:" />
-                            <Label fx:id="wagaSilnikaLabel" style="-fx-font-size: 11px;" text="---" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Waga:" />
+                            <Label fx:id="engineWeightLabel" text="---" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Obroty:" />
-                            <Label fx:id="obrotyLabel" text="0 RPM" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Obroty:" />
+                            <Label fx:id="rpmLabel" text="0 RPM" />
                         </HBox>
                     </VBox>
                 </TitledPane>
 
                 <TitledPane collapsible="false" expanded="true" text="Sprzęgło">
-                    <VBox spacing="6">
-                        <padding>
-                            <Insets bottom="8" left="8" right="8" top="8" />
-                        </padding>
-
+                    <VBox spacing="8">
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Nazwa:" />
-                            <Label fx:id="nazwaSprzeglaLabel" style="-fx-font-size: 11px;" text="---" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Nazwa:" />
+                            <Label fx:id="clutchNameLabel" text="---" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Cena:" />
-                            <Label fx:id="cenaSprzeglaLabel" style="-fx-font-size: 11px;" text="---" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Cena:" />
+                            <Label fx:id="clutchPriceLabel" text="---" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Waga:" />
-                            <Label fx:id="wagaSprzeglaLabel" style="-fx-font-size: 11px;" text="---" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Waga:" />
+                            <Label fx:id="clutchWeightLabel" text="---" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label prefWidth="100" style="-fx-font-weight: bold; -fx-font-size: 11px;" text="Stan:" />
-                            <Label fx:id="stanSprzeglaLabel" text="Zwolnione" />
+                            <Label prefWidth="80" style="-fx-font-weight: 600;" text="Stan:" />
+                            <Label fx:id="clutchStateLabel" text="Zwolnione" />
                         </HBox>
                     </VBox>
                 </TitledPane>
@@ -146,23 +130,23 @@
             <BorderPane>
 
                 <center>
-                    <StackPane fx:id="visualizationArea">
+                    <Pane fx:id="visualizationArea">
 
-                    </StackPane>
+                    </Pane>
                 </center>
             <bottom>
-               <ToolBar prefHeight="40.0" BorderPane.alignment="CENTER">
+               <ToolBar BorderPane.alignment="CENTER">
                  <items>
-                     <Button fx:id="turnOnButton" mnemonicParsing="false" onAction="#handleWlacz" text="START" />
-                     <Button fx:id="turnOffButton" mnemonicParsing="false" onAction="#handleWylacz" text="STOP" />
-                   <Button fx:id="action1Button" mnemonicParsing="false" onAction="#handleZwiekszBieg" text="BIEG +" />
-                     <Button fx:id="action2Button" mnemonicParsing="false" onAction="#handleZmniejszBieg" text="BIEG -" />
-                     <Button fx:id="action3Button" mnemonicParsing="false" onAction="#handleWcisnijSprzeglo" text="SPRZĘGŁO WC" />
-                     <Button fx:id="action4Button" mnemonicParsing="false" onAction="#handleZwolnijSprzeglo" text="SPRZĘGŁO ZW" />
-                     <Button mnemonicParsing="false" onAction="#handleGaz" text="GAZ" />
-                     <Button mnemonicParsing="false" onAction="#handleHamuj" text="HAMUJ" />
-                     <Button mnemonicParsing="false" onAction="#handleJedzDo" text="JEDŹ!" />
-                     <RadioButton fx:id="modeRadioButton" mnemonicParsing="false" text="ENGINE" disable="true" />
+                     <Button fx:id="turnOnButton" mnemonicParsing="false" onAction="#handleTurnOn" text="Start" />
+                     <Button fx:id="turnOffButton" mnemonicParsing="false" onAction="#handleTurnOff" text="Stop" />
+                   <Button fx:id="action1Button" mnemonicParsing="false" onAction="#handleIncreaseGear" text="Bieg +" />
+                     <Button fx:id="action2Button" mnemonicParsing="false" onAction="#handleReduceGear" text="Bieg −" />
+                     <Button fx:id="action3Button" mnemonicParsing="false" onAction="#handlePressClutch" text="Wciśnij sprzęgło" />
+                     <Button fx:id="action4Button" mnemonicParsing="false" onAction="#handleReleaseClutch" text="Zwolnij sprzęgło" />
+                     <Button mnemonicParsing="false" onAction="#handleIncreaseRpm" text="Obroty +" />
+                     <Button mnemonicParsing="false" onAction="#handleReduceRpm" text="Obroty −" />
+                     <Button fx:id="testButton" mnemonicParsing="false" onAction="#handleDriveTo" text="Parkuj" />
+                     <RadioButton fx:id="modeRadioButton" mnemonicParsing="false" text="Engine" disable="true" />
                  </items>
                </ToolBar>
             </bottom>

@@ -1,75 +1,76 @@
 package po;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
-import javafx.stage.Stage;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 
 public class CarSimulatorController {
 
     @FXML
-    private ComboBox<Samochod> carSelector;
+    private ComboBox<Car> carSelector;
 
     @FXML
     private Button addCarButton;
 
     @FXML
-    private Label modelSamochoduLabel;
+    private Label carModelLabel;
 
     @FXML
-    private Label nrRejestracjiLabel;
+    private Label registrationNumberLabel;
 
     @FXML
-    private Label wagaSamochoduLabel;
+    private Label carWeightLabel;
 
     @FXML
-    private Label predkoscLabel;
+    private Label speedLabel;
 
     @FXML
-    private Label nazwaSkrzyniBiegowLabel;
+    private Label gearboxNameLabel;
 
     @FXML
-    private Label cenaSkrzyniBiegowLabel;
+    private Label gearboxPriceLabel;
 
     @FXML
-    private Label wagaSkrzyniBiegowLabel;
+    private Label gearboxWeightLabel;
 
     @FXML
-    private Label aktualnyBiegLabel;
+    private Label currentGearLabel;
 
     @FXML
-    private Label nazwaSilnikaLabel;
+    private Label engineNameLabel;
 
     @FXML
-    private Label cenaSilnikaLabel;
+    private Label enginePriceLabel;
 
     @FXML
-    private Label wagaSilnikaLabel;
+    private Label engineWeightLabel;
 
     @FXML
-    private Label obrotyLabel;
+    private Label rpmLabel;
 
     @FXML
-    private Label nazwaSprzeglaLabel;
+    private Label clutchNameLabel;
 
     @FXML
-    private Label cenaSprzeglaLabel;
+    private Label clutchPriceLabel;
 
     @FXML
-    private Label wagaSprzeglaLabel;
+    private Label clutchWeightLabel;
 
     @FXML
-    private Label stanSprzeglaLabel;
+    private Label clutchStateLabel;
 
     @FXML
-    private StackPane visualizationArea;
+    private Pane visualizationArea;
 
     @FXML
     private Button turnOnButton;
@@ -90,208 +91,200 @@ public class CarSimulatorController {
     private Button action4Button;
 
     @FXML
+    private Button tesButton;
+
+    @FXML
     private RadioButton modeRadioButton;
 
-    private Samochod samochod;
-    private Sprzeglo sprzeglo;
-    private SkrzyniaBiegow skrzynia;
-    private Silnik silnik;
-    private ImageView ikonaSamochodu;
+    private Car car;
+    private Clutch clutch;
+    private Gearbox gearbox;
+    private Engine engine;
+    private Circle carIcon;
+    private List<Car> carList;
+    private AnimationTimer animationTimer;
+    private Position targetPosition;
+    private long lastUpdate;
 
     @FXML
     public void initialize() {
-        Sprzeglo sprzeglo1 = new Sprzeglo("sprzeglo1", 200, 757);
-        SkrzyniaBiegow skrzynia1 = new SkrzyniaBiegow("skrzynia1", 100, 212, 2, sprzeglo1,
-                new double[]{800, 1000, 3000});
-        Silnik silnik1 = new Silnik("silnik1", 2431, 32, 5000);
-        Pozycja start1 = new Pozycja(0, 0);
-        Samochod auto1 = new Samochod(126, "Fiat 126p", 120, skrzynia1, silnik1, start1);
+        carList = new ArrayList<>();
+        Position start = new Position(0, 0);
 
-        Sprzeglo sprzeglo2 = new Sprzeglo("sprzeglo2", 300, 1200);
-        SkrzyniaBiegow skrzynia2 = new SkrzyniaBiegow("skrzynia2", 150, 350, 5, sprzeglo2,
+        Clutch defaultClutch1 = new Clutch("defaultClutch1", 200, 777);
+        Gearbox defaultGearbox1 = new Gearbox("defaultGearbox1", 200, 888, 2, defaultClutch1,
+                new double[]{0.08, 0.09, 0.1});
+        Engine defaultEngine1 = new Engine("defaultEngine1", 400, 999, 5000);
+        Car defaultCar1 = new Car(126, "defaultCar1", 120, defaultGearbox1, defaultEngine1, start);
+
+        Clutch defaultClutch2 = new Clutch("defaultClutch2", 300, 1200);
+        Gearbox defaultGearbox2 = new Gearbox("defaultGearbox2", 150, 350, 5, defaultClutch2,
                 new double[]{800, 1200, 2000, 3500, 5000, 7000});
-        Silnik silnik2 = new Silnik("silnik2", 3500, 50, 8000);
-        Pozycja start2 = new Pozycja(0, 0);
-        Samochod auto2 = new Samochod(420, "Szybki zielony samochod", 280, skrzynia2, silnik2, start2);
+        Engine defaultEngine2 = new Engine("defaultEngine2", 3500, 50, 8000);
+        Car defaultCar2 = new Car(420, "defaultCar2", 280, defaultGearbox2, defaultEngine2, start);
 
-        Sprzeglo sprzeglo3 = new Sprzeglo("sprzeglo3", 250, 900);
-        SkrzyniaBiegow skrzynia3 = new SkrzyniaBiegow("skrzynia3", 120, 280, 6, sprzeglo3,
+        Clutch defaultClutch3 = new Clutch("defaultClutch3", 250, 900);
+        Gearbox defaultGearbox3 = new Gearbox("defaultGearbox3", 120, 280, 6, defaultClutch3,
                 new double[]{800, 1500, 2200, 3200, 4500, 6000, 8000});
-        Silnik silnik3 = new Silnik("silnik3", 4200, 60, 9000);
-        Pozycja start3 = new Pozycja(0, 0);
-        Samochod auto3 = new Samochod(333, "wolny samochód czerwony", 250, skrzynia3, silnik3, start3);
+        Engine defaultEngine3 = new Engine("defaultEngine3", 4200, 60, 9000);
+        Car defaultCar3 = new Car(333, "defaultCar3", 250, defaultGearbox3, defaultEngine3, start);
 
-        carSelector.getItems().addAll(auto1, auto2, auto3);
-        carSelector.setValue(auto1);
+        carList.add(defaultCar1);
+        carList.add(defaultCar2);
+        carList.add(defaultCar3);
+
+        carSelector.getItems().addAll(carList);
+        carSelector.setValue(defaultCar1);
 
         carSelector.setOnAction(e -> {
-            Samochod wybranyAuto = carSelector.getValue();
-            if (wybranyAuto != null) {
-                samochod = wybranyAuto;
-                skrzynia = samochod.getSkrzyniaBiegow();
-                silnik = samochod.getSilnik();
-                sprzeglo = skrzynia.getSprzeglo();
-                modeRadioButton.setSelected(samochod.getCzyWlaczony());
-                updateAllLabels();
-            }
+            Car selectedCar = carSelector.getValue();
+            car = selectedCar;
+            gearbox = car.getGearbox();
+            engine = car.getEngine();
+            clutch = gearbox.getClutch();
+            modeRadioButton.setSelected(car.getCurrentState());
+            updateAllLabels();
+        });
+        
+        car = defaultCar1;
+        gearbox = car.getGearbox();
+        engine = car.getEngine();
+        clutch = gearbox.getClutch();
+        modeRadioButton.setSelected(car.getCurrentState());
+
+        carIcon = new Circle(10, Color.RED);
+        visualizationArea.getChildren().clear();
+        visualizationArea.getChildren().add(carIcon);
+
+        visualizationArea.setOnMouseClicked(event -> {
+            double clickX = event.getX();
+            double clickY = event.getY();
+
+            double width = visualizationArea.getWidth();
+            double height = visualizationArea.getHeight();
+
+            double worldX = clickX - width / 2;
+            double worldY = height / 2 - clickY;
+
+            targetPosition = new Position(worldX, worldY);
         });
 
-        sprzeglo = sprzeglo1;
-        skrzynia = skrzynia1;
-        silnik = silnik1;
-        samochod = auto1;
+        targetPosition = null;
+        lastUpdate = 0;
 
-        modeRadioButton.setSelected(samochod.getCzyWlaczony());
+        animationTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                if (targetPosition != null) {
+                    car.driveTo(targetPosition);
+                }
 
-        // Stwórz ikonę samochodu (wizualizację)
-        try {
-            Image image = new Image(getClass().getResourceAsStream("/ikona.jpg"));
-            ikonaSamochodu = new ImageView(image);
-            ikonaSamochodu.setFitWidth(60);
-            ikonaSamochodu.setFitHeight(60);
-            ikonaSamochodu.setPreserveRatio(true);
-
-            visualizationArea.getChildren().clear();
-            visualizationArea.getChildren().add(ikonaSamochodu);
-        } catch (Exception e) {
-            System.out.println("Błąd ładowania ikony samochodu: " + e.getMessage());
-            e.printStackTrace();
-        }
+                updateAllLabels();
+                updateCarVisualization();
+            }
+        };
+        animationTimer.start();
 
         updateAllLabels();
         updateCarVisualization();
     }
 
     private void updateAllLabels() {
-        modelSamochoduLabel.setText(samochod.getModel());
-        nrRejestracjiLabel.setText(String.valueOf(samochod.getNrRejestracyjny()));
-        wagaSamochoduLabel.setText(String.format("%.1f kg", samochod.getWaga()));
-        predkoscLabel.setText(String.format("%.1f km/h", samochod.getAktPredkosc()));
+        carModelLabel.setText(car.getModel());
+        registrationNumberLabel.setText(String.valueOf(car.getRegistrationNumber()));
+        carWeightLabel.setText(String.format("%.1f kg", car.getWeight()));
+        speedLabel.setText(String.format("%.1f km/h", car.getSpeed()));
 
-        nazwaSkrzyniBiegowLabel.setText(skrzynia.getNazwa());
-        cenaSkrzyniBiegowLabel.setText(String.format("%.0f zl", skrzynia.getCena()));
-        wagaSkrzyniBiegowLabel.setText(String.format("%.0f kg", skrzynia.getWaga()));
-        int aktBieg = skrzynia.getAktBieg();
-        aktualnyBiegLabel.setText(aktBieg == 0 ? "N" : String.valueOf(aktBieg));
+        gearboxNameLabel.setText(gearbox.getName());
+        gearboxPriceLabel.setText(String.format("%.0f zl", gearbox.getPrice()));
+        gearboxWeightLabel.setText(String.format("%.0f kg", gearbox.getWeight()));
+        int currentGear = gearbox.getCurrentGear();
+        currentGearLabel.setText(currentGear == 0 ? "N" : String.valueOf(currentGear));
 
-        nazwaSilnikaLabel.setText(silnik.getNazwa());
-        cenaSilnikaLabel.setText(String.format("%.0f zl", silnik.getCena()));
-        wagaSilnikaLabel.setText(String.format("%.0f kg", silnik.getWaga()));
-        obrotyLabel.setText(String.format("%.0f RPM", silnik.getObroty()));
+        engineNameLabel.setText(engine.getName());
+        enginePriceLabel.setText(String.format("%.0f zl", engine.getPrice()));
+        engineWeightLabel.setText(String.format("%.0f kg", engine.getWeight()));
+        rpmLabel.setText(String.format("%.0f RPM", engine.getRpm()));
 
-        nazwaSprzeglaLabel.setText(sprzeglo.getNazwa());
-        cenaSprzeglaLabel.setText(String.format("%.0f zl", sprzeglo.getCena()));
-        wagaSprzeglaLabel.setText(String.format("%.0f kg", sprzeglo.getWaga()));
-        stanSprzeglaLabel.setText(sprzeglo.getStanSprzegla() ? "Wciśnięte" : "Zwolnione");
+        clutchNameLabel.setText(clutch.getName());
+        clutchPriceLabel.setText(String.format("%.0f zl", clutch.getPrice()));
+        clutchWeightLabel.setText(String.format("%.0f kg", clutch.getWeight()));
+        clutchStateLabel.setText(clutch.getCurrentClutchState() ? "Wciśnięte" : "Zwolnione");
+
+        modeRadioButton.setSelected(car.getCurrentState());
     }
 
+private void updateCarVisualization() {
+    double width = visualizationArea.getWidth();
+    double height = visualizationArea.getHeight();
+
+    if (width <= 0 || height <= 0) {
+        return;
+    }
+
+    Position pos = car.getPosition();
+    carIcon.setCenterX(width / 2 + pos.getX());
+    carIcon.setCenterY(height / 2 - pos.getY());
+}
+
+
     @FXML
-    private void handleWlacz() {
-        samochod.wlacz();
-        modeRadioButton.setSelected(samochod.getCzyWlaczony());
+    private void handleTurnOn() {
+        car.start();
         updateAllLabels();
     }
 
     @FXML
-    private void handleWylacz() {
-        samochod.wylacz();
-        modeRadioButton.setSelected(samochod.getCzyWlaczony());
+    private void handleTurnOff() {
+        car.stop();
         updateAllLabels();
     }
 
     @FXML
-    private void handleZwiekszBieg() {
-        samochod.getSkrzyniaBiegow().zwiekszBieg();
+    private void handleIncreaseGear() {
+        gearbox.increaseGear();
         updateAllLabels();
     }
 
     @FXML
-    private void handleZmniejszBieg() {
-        skrzynia.zmniejszBieg();
+    private void handleReduceGear() {
+        gearbox.reduceGear();
         updateAllLabels();
     }
 
     @FXML
     private void handleAddCar() {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/NewCar.fxml")
-            );
-            Stage stage = new Stage();
-            stage.setScene(new Scene(loader.load()));
-            stage.setTitle("Dodaj nowy samochód");
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void updateSpeed(double speed) {
-        predkoscLabel.setText(String.format("%.1f km/h", speed));
-    }
-
-    public void updateRpm(double rpm) {
-        obrotyLabel.setText(String.format("%.0f RPM", rpm));
-    }
-
-    public void updateGear(int gear) {
-        if (gear == 0) {
-            aktualnyBiegLabel.setText("N");
-        } else {
-            aktualnyBiegLabel.setText(String.valueOf(gear));
-        }
-    }
-
-    private void updateCarVisualization() {
-        if (ikonaSamochodu == null) return;
-
-        Pozycja poz = samochod.getAktPozycja();
-        // Centruj ikonę w visualizationArea i dodaj offset na podstawie pozycji
-        double width = visualizationArea.getWidth() > 0 ? visualizationArea.getWidth() : 400;
-        double height = visualizationArea.getHeight() > 0 ? visualizationArea.getHeight() : 400;
-        double centerX = width / 2;
-        double centerY = height / 2;
-
-        // Ustaw pozycję (ImageView używa layoutX/Y a nie centerX/Y)
-        ikonaSamochodu.setLayoutX(centerX + poz.getX() - ikonaSamochodu.getFitWidth() / 2);
-        ikonaSamochodu.setLayoutY(centerY - poz.getY() - ikonaSamochodu.getFitHeight() / 2); // Odwróć Y, bo JavaFX ma Y w dół
-
-        System.out.println("Pozycja samochodu: (" + poz.getX() + ", " + poz.getY() + ")");
-        System.out.println("Pozycja ikony: (" + ikonaSamochodu.getLayoutX() + ", " + ikonaSamochodu.getLayoutY() + ")");
+        //to do 
     }
 
     @FXML
-    private void handleWcisnijSprzeglo() {
-        sprzeglo.wcisnij(0);
+    private void handlePressClutch() {
+        clutch.press();
         updateAllLabels();
     }
 
     @FXML
-    private void handleZwolnijSprzeglo() {
-        sprzeglo.zwolnij(0);
+    private void handleReleaseClutch() {
+        clutch.release();
         updateAllLabels();
     }
 
     @FXML
-    private void handleGaz() {
-        silnik.zwiekszObroty(200);
+    private void handleIncreaseRpm() {
+        engine.increaseRpm(200);
         updateAllLabels();
         updateCarVisualization();
     }
 
     @FXML
-    private void handleHamuj() {
-        silnik.zmniejszObroty(200);
+    private void handleReduceRpm() {
+        engine.reduceRpm(200);
         updateAllLabels();
         updateCarVisualization();
     }
 
     @FXML
-    private void handleJedzDo() {
-        // Testowa metoda - jedź do pozycji (100, 100)
-        Pozycja cel = new Pozycja(100, 100);
-        samochod.jedzDo(cel);
-        updateAllLabels();
-        updateCarVisualization();
+    private void handleDriveTo() {
+        targetPosition = new Position(0, 0);
     }
 }
