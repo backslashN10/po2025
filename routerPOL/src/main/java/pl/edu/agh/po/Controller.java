@@ -1,213 +1,355 @@
 package pl.edu.agh.po;
 
-import org.fusesource.jansi.AnsiConsole;
+import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.GridPane;
+import javafx.geometry.Insets;
+import javafx.util.Pair;
+import java.util.Optional;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import javafx.scene.input.Clipboard;
 
-import java.util.List;
+public class Controller {
 
-public class Controller
-{
+    @FXML private VBox loginPanel;
+    @FXML private TextField usernameField;
+    @FXML private PasswordField passwordField;
+    @FXML private Label loginMessageLabel;
+    @FXML private VBox adminPanel;
+    @FXML private Label welcomeAdminLabel;
+    @FXML private Label adminRoleLabel;
+    @FXML private VBox ceoPanel;
+    @FXML private Label welcomeCeoLabel;
+    @FXML private Label ceoRoleLabel;
+    @FXML private VBox technicianPanel;
+    @FXML private Label welcomeTechnicianLabel;
+    @FXML private Label technicianRoleLabel;
 
-    private boolean isRunning = true;
-    AuthenticationService authService = AuthenticationService.getInstance();
-    View view = new View();
-    UserDAO userDAO = UserDAO.getInstance();
-    BusinessManager businessManager = BusinessManager.getInstance();
-    DeviceDAO deviceDAO = DeviceDAO.getInstance();
-    public void start()
-    {
-        AnsiConsole.systemInstall();
-        while(isRunning)
-        {
-            handleShow();
-        }
-        AnsiConsole.systemUninstall();
-    }
-    public void quit()
-    {
-        isRunning = false;
-    }
-    public void addDevice() {
-        Device newDevice = view.getDataNewDevice();
-        deviceDAO.save(newDevice);
-        view.showMessage("Urządzenie dodane poprawnie.");
-    }
-    public void addUser() {
+    private AuthenticationService authService = AuthenticationService.getInstance();
+    private UserDAO userDAO = UserDAO.getInstance();
+    private DeviceDAO deviceDAO = DeviceDAO.getInstance();
+    private BusinessManager businessManager = BusinessManager.getInstance();
 
-        LoginData loginData = view.getLoginProcess();
-        String username = loginData.getUsername();
-        String password = loginData.getPassword();
-        UserRole role = view.getRole();
-
-        User newUser = new User(username, password, role);
-        userDAO.save(newUser); // zapis do repozytorium/listy
-        view.showMessage("Użytkownik dodany: " + newUser.getUsername());
-    }
-    public void showAllUsers() {
-        List<User> users = userDAO.findALL();
-
-        if (users.isEmpty()) {
-            view.showMessage("Brak użytkowników w bazie.");
-            return;
-        }
-
-        view.showUsers(users);
-    }
-    public void showAllDevices()
-    {
-        List<Device> devices = deviceDAO.findAll();
-        if (devices.isEmpty()) {
-            view.showMessage("Brak urządzeń w bazie.");
-            return;
-        }
-        view.showDevices(devices);
+    @FXML
+    public void initialize() {
+        showLoginPanel();
     }
 
-    public void makeRaport()
-    {
-        List<Device> devices = deviceDAO.findAll();
-        if (devices.isEmpty()) {
-            view.showMessage("Brak urządzeń w bazie. Nie można wygenerować raportu.");
-            return;
-        }
-        businessManager.generateFullRaport();
-        view.showMessage("Raport został wygenerowany.");
-    }
-    public void deleteDevice()
-    {
-        long id = view.getDeviceId();
-        //tu trzeba dodac obsluge ze uzytkownik wpisze typ albo status
-        Device device = deviceDAO.findByID(id);
-        if (device == null) {
-            view.showMessage("Nie znaleziono urządzenia o ID: " + id);
-            return;
-        }
-        deviceDAO.deleteByID(id);
-        view.showMessage("Urządzenie zostało usunięte o ID: " + id);
-    }
-    public void changeDeviceConfiguration() {
-        long id = view.getDeviceId();
-        //tu trzeba dodac obsluge ze uzytkownik wpisze typ albo status
-        Device device = deviceDAO.findByID(id);
-        if (device == null) {
-            view.showMessage("Nie znaleziono urządzenia o ID: " + id);
-            return;
-        }
-        String newConfiguration = view.getNewConfiguration();
-        device.setConfiguration(newConfiguration);
+    @FXML
+    private void handleLogin() {
+        String username = usernameField.getText();
+        String password = passwordField.getText();
 
-        deviceDAO.updateData(device);
-
-        view.showMessage("Konfiguracja urządzenia została zmieniona o ID: " + id);
-    }
-
-
-    public void handleShow()
-    {
-        int input = 666;
-        User currentUser = authService.getCurrentUser();
-        if(currentUser == null)
-        {
-                input = view.showMenuLogin();
-                if(input == 1)
-                {
-                    handleUserLogin();
-                }
-                else if(input == 0) quit();
-            return;
-        }
-
-        switch(authService.getCurrentUser().getRole())
-        {
-            case ADMIN:
-                input = view.showMenuAdmin();
-                if(input == 1)
-                {
-                    addUser();
-                }
-                else if(input == 2)
-                {
-                    blockUser();
-                }
-                else if(input == 3)
-                {
-                    authService.logout();
-                }
-                else if(input == 0)
-                {
-                    quit();
-                }
-                break;
-            case CEO:
-                input =  view.showMenuCEO();
-                if(input == 1)
-                {
-                    showAllUsers();
-                }
-                else if(input == 2)
-                {
-                    makeRaport();
-                }
-                else if(input == 3)
-                {
-                    authService.logout();
-                }
-                else if(input == 0) {
-                    quit();
-                }
-                break;
-            case TECHNICIAN:
-                input =  view.showMenuTechnician();
-                if(input == 1)
-                {
-                   addDevice();
-                }else if(input == 2)
-                {
-                    changeDeviceConfiguration();
-                }
-                else if(input == 3)
-                {
-                    deleteDevice();
-                }
-                else if(input == 4)
-                {
-                    showAllDevices();
-                }
-                else if(input == 5)
-                {
-                    authService.logout();
-                }
-                else if(input == 0)
-                {
-                    quit();
-                }
-                break;
-
-            default:
-                view.defaultOption();
-        }
-    }
-    public void blockUser()
-    {
-        String username = view.blockUser();
-        User user = userDAO.findByUsername(username);
-        //obsluga wyszukiwania po roli i id
-        if(user == null)
-        {
-            view.showMessage("Użytkownik o loginie " + username + " nie istnieje.");
-            return;
-        }
-        view.showMessage("Użytkownik o loginie " + username + " został usunięty.");
-        userDAO.deleteByID(user.getID());
-    }
-    public void handleUserLogin()
-    {
-        LoginData data = view.getLoginProcess();
-        boolean success = authService.login(data.getUsername(), data.getPassword());
-        if (success) {
-            view.showMessage("Logowanie udane\n");
+        if (authService.login(username, password)) {
+            loginMessageLabel.setText("");
+            switch (authService.getCurrentUser().getRole()) {
+                case ADMIN:
+                    showAdminPanel();
+                    break;
+                case CEO:
+                    showCeoPanel();
+                    break;
+                case TECHNICIAN:
+                    showTechnicianPanel();
+                    break;
+            }
+            usernameField.clear();
+            passwordField.clear();
         } else {
-            view.showMessage("Logowanie nieudane.\n");
+            passwordField.clear();
+            loginMessageLabel.setText("Invalid credentials!");
         }
     }
 
+    @FXML
+    private void handleLogout() {
+        authService.logout();
+        showLoginPanel();
+    }
+
+    @FXML
+    private void handleExit() {
+        Platform.exit();
+    }
+
+    private void hideAllPanels() {
+        loginPanel.setVisible(false);
+        adminPanel.setVisible(false);
+        ceoPanel.setVisible(false);
+        technicianPanel.setVisible(false);
+    }
+
+    private void showLoginPanel() {
+        hideAllPanels();
+        loginPanel.setVisible(true);
+    }
+
+    private void showAdminPanel() {
+        hideAllPanels();
+        adminPanel.setVisible(true);
+        welcomeAdminLabel.setText("logged in as: " + authService.getCurrentUser().getUsername());
+        adminRoleLabel.setText("user role: admin");
+    }
+
+    private void showCeoPanel() {
+        hideAllPanels();
+        ceoPanel.setVisible(true);
+        welcomeCeoLabel.setText("logged in as: " + authService.getCurrentUser().getUsername());
+        ceoRoleLabel.setText("user role: ceo");
+    }
+
+    private void showTechnicianPanel() {
+        hideAllPanels();
+        technicianPanel.setVisible(true);
+        welcomeTechnicianLabel.setText("logged in as: " + authService.getCurrentUser().getUsername());
+        technicianRoleLabel.setText("user role: technician");
+    }
+
+    @FXML
+    private void handleAddUser() {
+        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        dialog.setTitle("Dodaj użytkownika");
+
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField usernameField = new TextField();
+        PasswordField passwordField = new PasswordField();
+        ChoiceBox<UserRole> roleChoiceBox = new ChoiceBox<>();
+        roleChoiceBox.getItems().addAll(UserRole.ADMIN, UserRole.CEO, UserRole.TECHNICIAN);
+        roleChoiceBox.setValue(UserRole.TECHNICIAN);
+
+        grid.add(new Label("Username:"), 0, 0);
+        grid.add(usernameField, 1, 0);
+        grid.add(new Label("Password:"), 0, 1);
+        grid.add(passwordField, 1, 1);
+        grid.add(new Label("Role:"), 0, 2);
+        grid.add(roleChoiceBox, 1, 2);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                return new Pair<>(usernameField.getText(), passwordField.getText());
+            }
+            return null;
+        });
+
+        Optional<Pair<String, String>> result = dialog.showAndWait();
+        result.ifPresent(credentials -> {
+            User newUser = new User(credentials.getKey(), credentials.getValue(), roleChoiceBox.getValue());
+            userDAO.save(newUser);
+        });
+    }
+
+    @FXML
+    private void handleBlockUser() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Usuń użytkownika");
+        dialog.setContentText("Username:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(username -> {
+            User user = userDAO.findByUsername(username);
+            if (user != null) {
+                userDAO.deleteByID(user.getID());
+            }
+        });
+    }
+
+    @FXML
+    private void handleShowDatabase() {
+        StringBuilder usersDB = new StringBuilder();
+        for (User user : userDAO.findALL()) {
+            usersDB.append("ID: ").append(user.getID()).append("\n");
+            usersDB.append("Username: ").append(user.getUsername()).append("\n");
+            usersDB.append("Role: ").append(user.getRole()).append("\n");
+            usersDB.append("-------------------\n");
+        }
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Baza użytkowników");
+        alert.setHeaderText("Lista użytkowników");
+        alert.setContentText(usersDB.toString());
+        alert.showAndWait();
+    }
+
+    @FXML
+    private void handleCreateReport() {
+        String report = businessManager.generateFullRaport();
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+        String filename = "raport_" + timestamp + ".md";
+        try (FileWriter writer = new FileWriter(filename)) {
+            writer.write(report);
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Raport");
+            alert.setHeaderText("Raport został wygenerowany");
+            alert.setContentText("Zapisano do pliku: " + filename);
+            alert.showAndWait();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleAddDevice() {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Dodaj urządzenie");
+
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        ChoiceBox<DeviceType> typeChoice = new ChoiceBox<>();
+        typeChoice.getItems().addAll(DeviceType.ROUTER, DeviceType.SWITCH, DeviceType.ACCESS_POINT);
+        typeChoice.setValue(DeviceType.ROUTER);
+
+        ChoiceBox<DeviceStatus> statusChoice = new ChoiceBox<>();
+        statusChoice.getItems().addAll(DeviceStatus.AVAILABLE, DeviceStatus.BROKEN, DeviceStatus.MAINTANCE, DeviceStatus.IN_USE);
+        statusChoice.setValue(DeviceStatus.AVAILABLE);
+
+        TextField modelField = new TextField();
+        TextField hostnameField = new TextField();
+        TextField ethField = new TextField();
+        TextField configField = new TextField();
+
+        grid.add(new Label("Type:"), 0, 0);
+        grid.add(typeChoice, 1, 0);
+        grid.add(new Label("Status:"), 0, 1);
+        grid.add(statusChoice, 1, 1);
+        grid.add(new Label("Model:"), 0, 2);
+        grid.add(modelField, 1, 2);
+        grid.add(new Label("Hostname:"), 0, 3);
+        grid.add(hostnameField, 1, 3);
+        grid.add(new Label("Ethernet Interfaces:"), 0, 4);
+        grid.add(ethField, 1, 4);
+        grid.add(new Label("Configuration:"), 0, 5);
+        grid.add(configField, 1, 5);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                return "OK";
+            }
+            return null;
+        });
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(r -> {
+            try {
+                Device device = new Device(
+                    typeChoice.getValue(),
+                    statusChoice.getValue(),
+                    modelField.getText(),
+                    hostnameField.getText(),
+                    Integer.parseInt(ethField.getText()),
+                    configField.getText()
+                );
+                deviceDAO.save(device);
+            } catch (NumberFormatException e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setContentText("Invalid number format");
+                alert.showAndWait();
+            }
+        });
+    }
+
+    @FXML
+    private void handleChangeConfiguration() {
+        TextInputDialog idDialog = new TextInputDialog();
+        idDialog.setTitle("Zmień konfigurację");
+        idDialog.setContentText("Device ID:");
+
+        Optional<String> idResult = idDialog.showAndWait();
+        idResult.ifPresent(idStr -> {
+            try {
+                long id = Long.parseLong(idStr);
+                Device device = deviceDAO.findByID(id);
+                if (device != null) {
+                    Dialog<String> configDialog = new Dialog<>();
+                    configDialog.setTitle("Zmień konfigurację");
+
+                    ButtonType pasteButton = new ButtonType("Wklej ze schowka", ButtonBar.ButtonData.OK_DONE);
+                    configDialog.getDialogPane().getButtonTypes().addAll(pasteButton, ButtonType.CANCEL);
+
+                    Label label = new Label("Kliknij 'Wklej ze schowka' aby wkleić konfigurację");
+                    configDialog.getDialogPane().setContent(label);
+
+                    configDialog.setResultConverter(dialogButton -> {
+                        if (dialogButton == pasteButton) {
+                            Clipboard clipboard = Clipboard.getSystemClipboard();
+                            return clipboard.getString();
+                        }
+                        return null;
+                    });
+
+                    Optional<String> configResult = configDialog.showAndWait();
+                    configResult.ifPresent(config -> {
+                        device.setConfiguration(config);
+                        deviceDAO.updateData(device);
+                    });
+                }
+            } catch (NumberFormatException e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setContentText("Invalid ID");
+                alert.showAndWait();
+            }
+        });
+    }
+
+    @FXML
+    private void handleDeleteDevice() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Usuń urządzenie");
+        dialog.setContentText("Device ID:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(idStr -> {
+            try {
+                long id = Long.parseLong(idStr);
+                deviceDAO.deleteByID(id);
+            } catch (NumberFormatException e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setContentText("Invalid ID");
+                alert.showAndWait();
+            }
+        });
+    }
+
+    @FXML
+    private void handleShowDevices() {
+        StringBuilder devices = new StringBuilder();
+        devices.append("BAZA URZĄDZEŃ\n");
+        devices.append("===================\n\n");
+
+        for (Device device : deviceDAO.findAll()) {
+            devices.append("ID: ").append(device.getId()).append("\n");
+            devices.append("Type: ").append(device.getType()).append("\n");
+            devices.append("Status: ").append(device.getStatus()).append("\n");
+            devices.append("Model: ").append(device.getModel()).append("\n");
+            devices.append("Hostname: ").append(device.getHostName()).append("\n");
+            devices.append("Ethernet Interfaces: ").append(device.getNumberOfEthernetInterfaces()).append("\n");
+            devices.append("Configuration: ").append(device.getConfiguration()).append("\n");
+            devices.append("-------------------\n");
+        }
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Baza urządzeń");
+        alert.setHeaderText("Lista urządzeń");
+        alert.setContentText(devices.toString());
+        alert.showAndWait();
+    }
 }

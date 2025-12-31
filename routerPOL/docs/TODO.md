@@ -1,7 +1,7 @@
 # TODO
 
 - [x] uzupelnic diagramy o nowe funkcjonalnosci
-- [ ] dodac ANSI i polepszyc graficzny CLI
+- [x] ~~dodac ANSI i polepszyc graficzny CLI~~ dodać GUI
 - [ ] dodac watki jako symulacja jakiegos polaczenia (moj pomysl to cykliczne powiadomienia z bazy danych czy wszystko dziala itd, drugi pomysl to wspolbiezne zapytania do bazy danych)
 - [ ] autoryzacja 2fa przez google token
 - [ ] rozwinac te raporty, miesieczne itd
