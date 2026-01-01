@@ -158,7 +158,7 @@ public class Controller
                     ", a nie " + status + ". Zmiana konfiguracji anulowana.");
             return;
         }
-        String newConfiguration = view.getNewConfiguration();
+        String newConfiguration = view.getStringInput("Podaj nową konfigurację:");
         device.setConfiguration(newConfiguration);
 
         deviceDAO.updateData(device);

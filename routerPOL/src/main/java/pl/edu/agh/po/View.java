@@ -48,13 +48,6 @@ public class View {
     {
         System.out.println("Niepoprawna opcja");
     }
-//    public String blockUser()
-//    {
-//        System.out.println("Podaj username kogo chcesz zablokowac");
-//        String username = scanner.nextLine();
-//        return username;
-//
-//    }
     public void showMessage(String message) {
         System.out.println(message);
     }
@@ -84,11 +77,6 @@ public class View {
 
     public DeviceStatus getStatus() {
         return chooseEnum("STATUS", DeviceStatus.values());
-    }
-
-    public String getNewConfiguration() {
-        System.out.println("Podaj nową konfigurację:");
-        return scanner.nextLine();
     }
 
 public long getDeviceId() {
