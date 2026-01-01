@@ -12,5 +12,5 @@
 - [ ] uzycie find by id, find by role dla userow
 - [ ] biedny backup
 - [ ] ogarniecie unique constraint jak sie odpala
-- [ ] fajnie jakby pokazywalo kto jest zalogowany
+- [x] fajnie jakby pokazywalo kto jest zalogowany
 - [ ] dodać skrypt pozwalający uzupełnić baze przykładowymi danymi
