@@ -40,7 +40,10 @@ public class UserDAO {
         try (Statement stmt = connection.createStatement()){
             stmt.execute(sql);
             User admin = new User(0L, "admin1", "admin1", UserRole.ADMIN);
-            save(admin);
+            if(findByUsername("admin1") == null)
+            {
+                save(admin);
+            }
         }
         catch (SQLException e){
             e.printStackTrace();

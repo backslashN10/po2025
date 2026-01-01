@@ -75,21 +75,87 @@ public class Controller
     public void deleteDevice()
     {
         long id = view.getDeviceId();
-        //tu trzeba dodac obsluge ze uzytkownik wpisze typ albo status
+
+        String typeInput = view.getStringInput("Podaj typ urządzenia (lub zostaw puste):");
+        String statusInput = view.getStringInput("Podaj status urządzenia (lub zostaw puste):");
+
+        //jesli nic nie wpisze to nie sprawdzamy poprawnosci, cecha nie interesuje
+        //usera no a jak wpisze to chce sprawdzic czy sie zgadza i wtedy juz MUSI sie zgadzac
+        DeviceStatus status = null;
+        DeviceType type = null;
+
+        try {
+            if (typeInput != null && !typeInput.isEmpty()) {
+                type = DeviceType.valueOf(typeInput.toUpperCase());
+            }
+
+            if (statusInput != null && !statusInput.isEmpty()) {
+                status = DeviceStatus.valueOf(statusInput.toUpperCase());
+            }
+
+        } catch (IllegalArgumentException e) {
+            view.showMessage("Błąd: Podano nieistniejący typ lub status!");
+            return;
+        }
         Device device = deviceDAO.findByID(id);
         if (device == null) {
             view.showMessage("Nie znaleziono urządzenia o ID: " + id);
             return;
         }
+        if (type != null && !type.equals(device.getType())) {
+            view.showMessage("Błąd! Urządzenie o ID " + id + " to " + device.getType() +
+                    ", a nie " + type + ". Usuwanie anulowane.");
+            return;
+        }
+
+        if (status != null && !status.equals(device.getStatus())) {
+            view.showMessage("Błąd! Urządzenie ma status " + device.getStatus() +
+                    ", a nie " + status + ". Usuwanie anulowane.");
+            return;
+        }
+
         deviceDAO.deleteByID(id);
         view.showMessage("Urządzenie zostało usunięte o ID: " + id);
     }
     public void changeDeviceConfiguration() {
         long id = view.getDeviceId();
-        //tu trzeba dodac obsluge ze uzytkownik wpisze typ albo status
+
+        String typeInput = view.getStringInput("Podaj typ urządzenia (lub zostaw puste):");
+        String statusInput = view.getStringInput("Podaj status urządzenia (lub zostaw puste):");
+
+        //jesli nic nie wpisze to nie sprawdzamy poprawnosci, cecha nie interesuje
+        //usera no a jak wpisze to chce sprawdzic czy sie zgadza i wtedy juz MUSI sie zgadzac
+        DeviceStatus status = null;
+        DeviceType type = null;
+
+        try {
+            if (typeInput != null && !typeInput.isEmpty()) {
+                type = DeviceType.valueOf(typeInput.toUpperCase());
+            }
+
+            if (statusInput != null && !statusInput.isEmpty()) {
+                status = DeviceStatus.valueOf(statusInput.toUpperCase());
+            }
+
+        } catch (IllegalArgumentException e) {
+            view.showMessage("Błąd: Podano nieistniejący typ lub status!");
+            return;
+        }
+
         Device device = deviceDAO.findByID(id);
         if (device == null) {
             view.showMessage("Nie znaleziono urządzenia o ID: " + id);
+            return;
+        }
+        if (type != null && !type.equals(device.getType())) {
+            view.showMessage("Błąd! Urządzenie o ID " + id + " to " + device.getType() +
+                    ", a nie " + type + ". Zmiana konfiguracji anulowana.");
+            return;
+        }
+
+        if (status != null && !status.equals(device.getStatus())) {
+            view.showMessage("Błąd! Urządzenie ma status " + device.getStatus() +
+                    ", a nie " + status + ". Zmiana konfiguracji anulowana.");
             return;
         }
         String newConfiguration = view.getNewConfiguration();
@@ -188,14 +254,53 @@ public class Controller
     }
     public void blockUser()
     {
-        String username = view.blockUser();
+        String username = view.getStringInput("Podaj login użytkownika do usunięcia.");
+        String idInput = view.getStringInput("Podaj ID użytkownika (lub zostaw puste).");
+        String roleInput = view.getStringInput("Podaj role użytkownika (lub zostaw puste");
+
+        Long id = null;
+        UserRole role = null;
+
+        try
+        {
+            if(idInput != null && !idInput.isEmpty())
+            {
+                id = Long.parseLong(idInput);
+            }
+            if(roleInput != null && !roleInput.isEmpty())
+            {
+                role = UserRole.valueOf(roleInput.toUpperCase());
+            }
+        }catch(NumberFormatException e)
+        {
+            view.showMessage("BŁĄD : ID musi być liczbą.");
+            return;
+        }catch(IllegalArgumentException e)
+        {
+            view.showMessage("BŁĄD : Podano nieistniejącą rolę.");
+            return;
+        }
+
         User user = userDAO.findByUsername(username);
-        //obsluga wyszukiwania po roli i id
         if(user == null)
         {
             view.showMessage("Użytkownik o loginie " + username + " nie istnieje.");
             return;
         }
+
+        if(id != null && !id.equals(user.getID()))
+        {
+            view.showMessage("Błąd! Login się zgadza, ale ID jest inne (Baza: " + user.getID() +
+                    " vs Podane: " + id + "). Usuwanie anulowane.");
+            return;
+        }
+        if(role != null && !role.equals(user.getRole()))
+        {
+            view.showMessage("Błąd! Login się zgadza, ale rola jest inna (Baza: " + user.getRole() +
+                    " vs Podane: " + role + "). Usuwanie anulowane.");
+            return;
+        }
+
         view.showMessage("Użytkownik o loginie " + username + " został usunięty.");
         userDAO.deleteByID(user.getID());
     }

@@ -48,13 +48,13 @@ public class View {
     {
         System.out.println("Niepoprawna opcja");
     }
-    public String blockUser()
-    {
-        System.out.println("Podaj username kogo chcesz zablokowac");
-        String username = scanner.nextLine();
-        return username;
-
-    }
+//    public String blockUser()
+//    {
+//        System.out.println("Podaj username kogo chcesz zablokowac");
+//        String username = scanner.nextLine();
+//        return username;
+//
+//    }
     public void showMessage(String message) {
         System.out.println(message);
     }
@@ -153,6 +153,12 @@ public long getDeviceId() {
         System.out.print("Hasło: ");
         String password = scanner.nextLine();
         return new LoginData(login, password);
+    }
+    public String getStringInput(String message)
+    {
+        System.out.println(message);
+        String input = scanner.nextLine();
+        return input.trim();
     }
     public UserRole getRole() {
         System.out.println("Wybierz rolę:");
