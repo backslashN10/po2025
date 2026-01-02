@@ -8,9 +8,9 @@
 - [ ] symulacja awarii urzadzen po jakims czasie czy cos
 - [ ] logi (co, kto, kiedy, z jakiego ip)
 - [ ] historia zmian
-- [ ] uzycie findby status i findby type dla devices
-- [ ] uzycie find by id, find by role dla userow
+- [x] uzycie findby status i findby type dla devices
+- [x] uzycie find by id, find by role dla userow
 - [ ] biedny backup
-- [ ] ogarniecie unique constraint jak sie odpala
+- [x] ogarniecie unique constraint jak sie odpala
 - [x] fajnie jakby pokazywalo kto jest zalogowany
 - [ ] dodać skrypt pozwalający uzupełnić baze przykładowymi danymi
