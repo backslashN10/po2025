@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.edu.agh.po.Controller">
+
+    <!-- PANEL LOGOWANIA -->
+    <VBox fx:id="loginPanel" alignment="CENTER" spacing="15.0">
+        <padding>
+            <Insets bottom="30.0" left="30.0" right="30.0" top="30.0"/>
+        </padding>
+
+        <Label text="RouterPOL"/>
+        <Label text="System Zarządzania Urządzeniami"/>
+
+        <VBox spacing="10.0">
+            <Label text="Login:"/>
+            <TextField fx:id="usernameField"/>
+            <Label text="Hasło:"/>
+            <PasswordField fx:id="passwordField"/>
+            <Label fx:id="loginMessageLabel"/>
+            <Button onAction="#handleLogin" text="Zaloguj się" maxWidth="Infinity"/>
+        </VBox>
+    </VBox>
+
+    <!-- PANEL MENU ADMINA -->
+    <VBox fx:id="adminPanel" alignment="CENTER" spacing="20.0" visible="false">
+        <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+        </padding>
+
+        <Label text="MENU ADMINA"/>
+        <VBox alignment="CENTER" spacing="2.0">
+            <Label fx:id="welcomeAdminLabel"/>
+            <Label fx:id="adminRoleLabel"/>
+        </VBox>
+
+        <VBox spacing="10.0">
+            <Button onAction="#handleAddUser" text="Dodaj użytkownika" maxWidth="Infinity"/>
+            <Button onAction="#handleBlockUser" text="Zablokuj użytkownika" maxWidth="Infinity"/>
+            <Button onAction="#handleLogout" text="Wyloguj" maxWidth="Infinity"/>
+            <Button onAction="#handleExit" text="Wyjście" maxWidth="Infinity"/>
+        </VBox>
+    </VBox>
+
+    <!-- PANEL MENU CEO -->
+    <VBox fx:id="ceoPanel" alignment="CENTER" spacing="20.0" visible="false">
+        <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+        </padding>
+
+        <Label text="MENU CEO"/>
+        <VBox alignment="CENTER" spacing="2.0">
+            <Label fx:id="welcomeCeoLabel"/>
+            <Label fx:id="ceoRoleLabel"/>
+        </VBox>
+
+        <VBox spacing="10.0">
+            <Button onAction="#handleShowDatabase" text="Pokaż bazę danych" maxWidth="Infinity"/>
+            <Button onAction="#handleCreateReport" text="Stwórz raport" maxWidth="Infinity"/>
+            <Button onAction="#handleLogout" text="Wyloguj" maxWidth="Infinity"/>
+            <Button onAction="#handleExit" text="Wyjście" maxWidth="Infinity"/>
+        </VBox>
+    </VBox>
+
+    <!-- PANEL MENU TECHNIKA -->
+    <VBox fx:id="technicianPanel" alignment="CENTER" spacing="20.0" visible="false">
+        <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+        </padding>
+
+        <Label text="MENU TECHNIKA"/>
+        <VBox alignment="CENTER" spacing="2.0">
+            <Label fx:id="welcomeTechnicianLabel"/>
+            <Label fx:id="technicianRoleLabel"/>
+        </VBox>
+
+        <VBox spacing="10.0">
+            <Button onAction="#handleAddDevice" text="Dodaj nowe urządzenie" maxWidth="Infinity"/>
+            <Button onAction="#handleChangeConfiguration" text="Zmień konfigurację" maxWidth="Infinity"/>
+            <Button onAction="#handleDeleteDevice" text="Usuń urządzenie" maxWidth="Infinity"/>
+            <Button onAction="#handleShowDevices" text="Pokaż bazę urządzeń" maxWidth="Infinity"/>
+            <Button onAction="#handleLogout" text="Wyloguj" maxWidth="Infinity"/>
+            <Button onAction="#handleExit" text="Wyjście" maxWidth="Infinity"/>
+        </VBox>
+    </VBox>
+
+</StackPane>
