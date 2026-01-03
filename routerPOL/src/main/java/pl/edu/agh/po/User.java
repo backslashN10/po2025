@@ -30,7 +30,7 @@ public class User {
         this.totpEnabled = false;
         this.totpSecret = null;
     }
-    public long getId(){
+    public Long getId(){
         return id;
     }
     public String getUsername(){
@@ -42,6 +42,7 @@ public class User {
     public UserRole getRole(){
         return role;
     }
+    public void setPassword(String password){this.password = password;}
     public boolean isBootstrap() { return bootstrap; }
     public void setBootstrap(boolean bootstrap) { this.bootstrap = bootstrap; }
     public boolean isForcePasswordChange() { return forcePasswordChange; }

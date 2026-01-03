@@ -29,6 +29,7 @@ public class AuthenticationService{
         if (userLookup == null || !PasswordEncryption.verify(password, userLookup.getPassword())) {
             return AuthStatus.INVALID_CREDENTIALS;
         }
+        currentUser = userLookup;
 
         if (userLookup.isBootstrap()) {
             return AuthStatus.BOOTSTRAP_REQUIRED;
@@ -41,8 +42,6 @@ public class AuthenticationService{
         if (userLookup.isTotpEnabled()) {
             return AuthStatus.TOTP_REQUIRED;
         }
-
-        currentUser = userLookup;
         return AuthStatus.SUCCESS;
     }
 
