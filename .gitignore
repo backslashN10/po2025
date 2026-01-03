@@ -1,3 +1,7 @@
+# app data
+*.md
+*.log
+
 # diagrams
 *.puml
 
