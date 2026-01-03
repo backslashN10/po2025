@@ -31,12 +31,11 @@ public class UserDAO {
     }
 
     private void createBootstrapAdmin() {
-        String hashedPassword = PasswordEncryption.hash("admin1"); // bcrypt / argon2
 
         User admin = new User(
                 0L,
                 "admin1",
-                hashedPassword,
+                "admin1",
                 UserRole.ADMIN
         );
 
@@ -168,15 +167,23 @@ public class UserDAO {
 
     public void save(User user) {
         String sql = "INSERT INTO users (username, password, role, bootstrap, force_password_change, totp_secret, totp_enabled) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, user.getUsername());
-            pstmt.setString(2, user.getPassword());
+            pstmt.setString(2, PasswordEncryption.hash(user.getPassword()));
             pstmt.setString(3, user.getRole().name());
             pstmt.setInt(4, user.isBootstrap() ? 1 : 0);
             pstmt.setInt(5, user.isForcePasswordChange() ? 1 : 0);
             pstmt.setString(6, user.getTotpSecret());
             pstmt.setInt(7, user.isTotpEnabled() ? 1 : 0);
+
             pstmt.executeUpdate();
+
+            // Pobranie wygenerowanego ID
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    user.setId(rs.getLong(1));
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -196,7 +203,7 @@ public class UserDAO {
         String sql = "UPDATE users SET username = ?, password = ?, role = ?, bootstrap = ?, force_password_change = ?, totp_secret = ?, totp_enabled = ? WHERE id = ?";
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                 pstmt.setString(1, user.getUsername());
-                pstmt.setString(2, user.getPassword());
+                pstmt.setString(2, PasswordEncryption.hash(user.getPassword()));
                 pstmt.setString(3, user.getRole().name());
                 pstmt.setInt(4, user.isBootstrap() ? 1 : 0);
                 pstmt.setInt(5, user.isForcePasswordChange() ? 1 : 0);

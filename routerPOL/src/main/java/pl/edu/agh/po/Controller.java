@@ -2,12 +2,15 @@ package pl.edu.agh.po;
 
 import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
 import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
@@ -16,6 +19,7 @@ import javafx.util.Pair;
 import javafx.embed.swing.SwingFXUtils;
 
 
+import java.awt.image.BufferedImage;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.time.Duration;
@@ -84,37 +88,22 @@ public class Controller {
 
         dialog.showAndWait().ifPresent(codeInput -> {
             try {
-                // Dekodujemy sekret z bazy (Base64 → SecretKey)
-                byte[] keyBytes = Base64.getDecoder().decode(user.getTotpSecret());
+                // Konwersja Base64 z bazy na SecretKey
+                String secret = user.getTotpSecret();
+                if (secret == null || secret.isBlank()) {
+                    throw new IllegalStateException("TOTP secret is empty!");
+                }
+                byte[] keyBytes = new Base32().decode(secret);
                 SecretKey key = new SecretKeySpec(keyBytes, "HmacSHA1");
 
+                // Tworzymy generator TOTP
                 TimeBasedOneTimePasswordGenerator totp = new TimeBasedOneTimePasswordGenerator(Duration.ofSeconds(30));
-                Instant now = Instant.now();
 
-                int codeInt;
-                try {
-                    codeInt = Integer.parseInt(codeInput);
-                } catch (NumberFormatException e) {
-                    Alert error = new Alert(Alert.AlertType.ERROR);
-                    error.setTitle("Error");
-                    error.setHeaderText("Invalid input! Enter numeric TOTP code.");
-                    error.showAndWait();
-                    showTotpPrompt(); // retry
-                    return;
-                }
+                // Generujemy aktualny kod TOTP
+                String expectedCode = String.format("%06d",
+                        totp.generateOneTimePassword(key, java.time.Instant.now()));
 
-                // Sprawdzamy bieżący i poprzedni krok (±30s) dla bezpieczeństwa
-                boolean valid = false;
-                for (int i = -1; i <= 1; i++) {
-                    Instant stepTime = now.plusSeconds(i * 30);
-                    int expected = totp.generateOneTimePassword(key, stepTime);
-                    if (expected == codeInt) {
-                        valid = true;
-                        break;
-                    }
-                }
-
-                if (valid) {
+                if (expectedCode.equals(codeInput)) {
                     Alert info = new Alert(Alert.AlertType.INFORMATION);
                     info.setTitle("Success");
                     info.setHeaderText("TOTP verified! Logging in...");
@@ -132,9 +121,9 @@ public class Controller {
                     error.setHeaderText("Invalid TOTP code!");
                     error.showAndWait();
 
-                    showTotpPrompt(); // retry
+                    // Pozwalamy użytkownikowi spróbować ponownie
+                    showTotpPrompt();
                 }
-
             } catch (Exception e) {
                 e.printStackTrace();
                 Alert error = new Alert(Alert.AlertType.ERROR);
@@ -157,7 +146,7 @@ public class Controller {
         dialog.showAndWait().ifPresent(newPassword -> {
             if (!newPassword.isBlank()) {
                 // hashujemy hasło i zapisujemy w userze
-                user.setPassword(PasswordEncryption.hash(newPassword));
+                user.setPassword(newPassword);
                 user.setForcePasswordChange(false); // hasło zmienione
                 try {
                     userDAO.updateData(user);           // zapis do bazy
@@ -238,9 +227,8 @@ public class Controller {
     }
     private void showBootstrapSetup() {
         User user = authService.getCurrentUser();
-        if (user == null) return;
 
-        // 1️⃣ Dialog zmiany hasła
+        // 1. Dialog zmiany hasła
         TextInputDialog passwordDialog = new TextInputDialog();
         passwordDialog.setTitle("Bootstrap Admin Setup");
         passwordDialog.setHeaderText("Set a new password for bootstrap admin");
@@ -248,61 +236,58 @@ public class Controller {
 
         passwordDialog.showAndWait().ifPresent(newPassword -> {
             if (!newPassword.isBlank()) {
-                // Zapis nowego hasła
-                user.setPassword(PasswordEncryption.hash(newPassword));
-                user.setForcePasswordChange(false);
-                user.setBootstrap(false);
-
                 try {
-                    // 2️⃣ Generowanie secretu TOTP
+                    // Zapisz nowe hasło
+                    user.setPassword(newPassword);
+                    user.setForcePasswordChange(false);
+                    user.setBootstrap(false);
+
+                    // Generowanie sekretu TOTP
                     KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA1");
-                    keyGen.init(160); // standard 160-bit
+                    keyGen.init(160); // standard TOTP = 160 bitów
                     SecretKey secretKey = keyGen.generateKey();
 
-                    // Base32 do Google Authenticator
+                    // zapis Base64 do bazy
                     Base32 base32 = new Base32();
-                    String secretBase32 = base32.encodeToString(secretKey.getEncoded()).replace("=", "");
-                    user.setTotpSecret(secretBase32);
+                    String base32Secret = base32.encodeToString(secretKey.getEncoded()).replace("=", ""); // usuń padding
+                    user.setTotpSecret(base32Secret);
                     user.setTotpEnabled(true);
-
-                    // 3️⃣ Tworzymy URL OTP dla GA
-                    String issuer = "MyApp";
-                    String accountName = user.getUsername();
-                    String otpAuthURL = String.format(
-                            "otpauth://totp/%s:%s?secret=%s&issuer=%s&digits=6",
-                            issuer, accountName, secretBase32, issuer
-                    );
-
-                    // 4️⃣ Generujemy QR code
-                    QRCodeWriter qrCodeWriter = new QRCodeWriter();
-                    var bitMatrix = qrCodeWriter.encode(otpAuthURL, BarcodeFormat.QR_CODE, 200, 200);
-                    var qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
-                    ImageView qrView = new ImageView(SwingFXUtils.toFXImage(qrImage, null));
-
-                    // 5️⃣ Pokazujemy QR code w Alert
-                    Alert totpAlert = new Alert(Alert.AlertType.INFORMATION);
-                    totpAlert.setTitle("Set up 2FA");
-                    totpAlert.setHeaderText("Scan this QR code with Google Authenticator\nOr use the secret manually: " + secretBase32);
-                    totpAlert.getDialogPane().setContent(qrView);
-                    totpAlert.showAndWait();
-
-                    // 6️⃣ Zapis do bazy
                     userDAO.updateData(user);
 
-                } catch (NoSuchAlgorithmException e) {
+                    // Generowanie URL do Google Authenticator
+                    // Format: otpauth://totp/<issuer>:<account>?secret=<secret>&issuer=<issuer>&digits=6
+                    String otpAuthUrl = "otpauth://totp/YourApp:" + user.getUsername() +
+                            "?secret=" + base32Secret +
+                            "&issuer=YourApp&digits=6";
+
+                    // Tworzymy QR code
+                    BitMatrix matrix = new MultiFormatWriter().encode(otpAuthUrl, BarcodeFormat.QR_CODE, 200, 200);
+                    BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(matrix);
+                    Image fxImage = SwingFXUtils.toFXImage(qrImage, null);
+
+                    // Pokazanie QR code w dialogu
+                    ImageView qrView = new ImageView(fxImage);
+                    qrView.setFitWidth(200);
+                    qrView.setFitHeight(200);
+
+                    Alert qrAlert = new Alert(Alert.AlertType.INFORMATION);
+                    qrAlert.setTitle("Set up 2FA");
+                    qrAlert.setHeaderText("Scan this QR code with Google Authenticator");
+                    qrAlert.getDialogPane().setContent(qrView);
+                    qrAlert.showAndWait();
+
+                    // Po skonfigurowaniu TOTP od razu prompt do kodu
+                    showTotpPrompt();
+
+                } catch (Exception e) {
                     e.printStackTrace();
-                    // fallback: tylko tekst secretu
-                    Alert fallback = new Alert(Alert.AlertType.INFORMATION);
-                    fallback.setTitle("Set up 2FA");
-                    fallback.setHeaderText("Use this secret in Google Authenticator");
-                    fallback.setContentText(user.getTotpSecret());
-                    fallback.showAndWait();
-                } catch (SQLException | WriterException e) {
-                    throw new RuntimeException(e);
+                    Alert error = new Alert(Alert.AlertType.ERROR);
+                    error.setTitle("Error");
+                    error.setHeaderText("Failed to setup bootstrap");
+                    error.showAndWait();
                 }
 
             } else {
-                // jeśli użytkownik nie poda hasła → zostaje w bootstrap
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Warning");
                 alert.setHeaderText("Password cannot be empty!");

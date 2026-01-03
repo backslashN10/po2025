@@ -1,7 +1,7 @@
 package pl.edu.agh.po;
 
 public class User {
-    private Long id;
+    private long id;
     private String username;
     private String password;
     private UserRole role;
@@ -11,7 +11,7 @@ public class User {
     private String totpSecret;
     private boolean totpEnabled;
 
-    public User(Long id, String username, String password, UserRole role) {
+    public User(long id, String username, String password, UserRole role) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -30,7 +30,7 @@ public class User {
         this.totpEnabled = false;
         this.totpSecret = null;
     }
-    public Long getId(){
+    public long getId(){
         return id;
     }
     public String getUsername(){
@@ -51,5 +51,5 @@ public class User {
     public void setTotpSecret(String totpSecret) { this.totpSecret = totpSecret; }
     public boolean isTotpEnabled() { return totpEnabled; }
     public void setTotpEnabled(boolean totpEnabled) { this.totpEnabled = totpEnabled; }
-
+    public void setId(long id) {this.id=id;}
 }
