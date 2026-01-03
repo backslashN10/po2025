@@ -60,30 +60,39 @@ public class Controller {
     private void handleLogin() {
         String username = usernameField.getText();
         String password = passwordField.getText();
+        AuthenticationService.AuthStatus status = authService.login(username, password);
+        User user = authService.getCurrentUser();
 
-        if (authService.login(username, password)) {
-            loginMessageLabel.setText("");
-            logger.info("user: " + username + " (" + authService.getCurrentUser().getRole() + ") logged in");
-            switch (authService.getCurrentUser().getRole()) {
-                case ADMIN:
-                    showAdminPanel();
-                    break;
-                case CEO:
-                    showCeoPanel();
-                    break;
-                case TECHNICIAN:
-                    showTechnicianPanel();
-                    break;
+        usernameField.clear();
+        passwordField.clear();
+        switch(status) {
+            case SUCCESS -> {
+                loginMessageLabel.setText("");
+                logger.info("user: " + username + " (" + authService.getCurrentUser().getRole() + ") logged in");
+                switch (user.getRole()) {
+                    case ADMIN -> showAdminPanel();
+                    case CEO -> showCeoPanel();
+                    case TECHNICIAN -> showTechnicianPanel();
+                }
+
             }
-            usernameField.clear();
-            passwordField.clear();
-        } else {
-            logger.warning("user provided bad credentials");
-            passwordField.clear();
-            loginMessageLabel.setText("Invalid credentials!");
+            case BOOTSTRAP_REQUIRED -> {
+                loginMessageLabel.setText("Bootstrap admin: set password & enable 2FA");
+                //dialog
+            }
+            case PASSWORD_CHANGE_REQUIRED ->  {
+                loginMessageLabel.setText("Password change required");
+                //dialog
+            }
+            case TOTP_REQUIRED ->   {
+                loginMessageLabel.setText("Enter TOTP code: ");
+                //dialog
+            }
+            case INVALID_CREDENTIALS ->  {
+                loginMessageLabel.setText("Invalid credentials!");
+                passwordField.clear();}
+            }
         }
-    }
-
     @FXML
     private void handleLogout() {
         logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") logged out");
@@ -162,7 +171,7 @@ public class Controller {
         result.ifPresent(credentials -> {
             User newUser = new User(credentials.getKey(), credentials.getValue(), roleChoiceBox.getValue());
             userDAO.save(newUser);
-            logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new user to database with ID: " + newUser.getID());
+            logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new user to database with ID: " + newUser.getId());
 
         });
     }
@@ -177,8 +186,8 @@ public class Controller {
         result.ifPresent(username -> {
             User user = userDAO.findByUsername(username);
             if (user != null) {
-                userDAO.deleteByID(user.getID());
-                logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted user with ID: " + user.getID());
+                userDAO.deleteByID(user.getId());
+                logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted user with ID: " + user.getId());
             }
         });
     }
@@ -187,7 +196,7 @@ public class Controller {
     private void handleShowDatabase() {
         StringBuilder usersDB = new StringBuilder();
         for (User user : userDAO.findALL()) {
-            usersDB.append("ID: ").append(user.getID()).append("\n");
+            usersDB.append("ID: ").append(user.getId()).append("\n");
             usersDB.append("Username: ").append(user.getUsername()).append("\n");
             usersDB.append("Role: ").append(user.getRole()).append("\n");
             usersDB.append("-------------------\n");

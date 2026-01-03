@@ -29,13 +29,33 @@ public class UserDAO {
         }
         return instance;
     }
+    private void createBootstrapAdmin() {
+        String hashedPassword = PasswordEncryption.hash("admin1"); // bcrypt / argon2
+
+        User admin = new User(
+                0L,
+                "admin1",
+                hashedPassword,
+                UserRole.ADMIN
+        );
+
+        admin.setBootstrap(true);
+        admin.setForcePasswordChange(true);
+        admin.setTotpEnabled(false);
+
+        save(admin);
+    }
     private void createTable(){
         String sql = """
                 CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL UNIQUE,
                 password TEXT NOT NULL,
-                role TEXT NOT NULL
+                role TEXT NOT NULL,
+                bootstrap INTEGER DEFAULT 0,
+                force_password_change INTEGER DEFAULT 0,
+                totp_secret TEXT,
+                totp_enabled INTEGER DEFAULT 0
                 );
                 """;
         try (Statement stmt = connection.createStatement()){
@@ -50,8 +70,7 @@ public class UserDAO {
             }
             if(!isAdminExists)
             {
-                User admin = new User(0L, "admin1", "admin1", UserRole.ADMIN);
-                save(admin);
+                createBootstrapAdmin();
             }
 
         }
@@ -59,6 +78,7 @@ public class UserDAO {
             e.printStackTrace();
         }
     }
+
     public User findByID(long ID){
         String sql = "SELECT * FROM users WHERE id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)){
@@ -151,7 +171,7 @@ public class UserDAO {
             pstmt.setString(1, user.getUsername());
             pstmt.setString(2, user.getPassword());
             pstmt.setString(3, user.getRole().name());
-            pstmt.setLong(4, user.getID());
+            pstmt.setLong(4, user.getId());
         } catch (Exception e) {
             e.printStackTrace();
         }
