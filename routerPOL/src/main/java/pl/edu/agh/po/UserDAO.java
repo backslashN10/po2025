@@ -1,5 +1,6 @@
 package pl.edu.agh.po;
 
+import javax.xml.transform.Result;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +40,20 @@ public class UserDAO {
                 """;
         try (Statement stmt = connection.createStatement()){
             stmt.execute(sql);
-            User admin = new User(0L, "admin1", "admin1", UserRole.ADMIN);
-            save(admin);
+            boolean isAdminExists = false;
+            try(ResultSet rs = stmt.executeQuery("SELECT 1 FROM users WHERE username = 'admin1'"))
+            {
+                if(rs.next())
+                {
+                    isAdminExists = true;
+                }
+            }
+            if(!isAdminExists)
+            {
+                User admin = new User(0L, "admin1", "admin1", UserRole.ADMIN);
+                save(admin);
+            }
+
         }
         catch (SQLException e){
             e.printStackTrace();

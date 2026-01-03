@@ -59,6 +59,15 @@ class pl.edu.agh.po.Controller {
 	{method} -lambda$7 ( paramDevice1 : pl.edu.agh.po.Device , paramString2 : String ) : void
 	{method} -lambda$8 ( paramString1 : String ) : void
 	{method} -setupLogging () : void
+	{method}  {static} -lambda$handleAddDevice$0 ( paramButtonType1 : javafx.scene.control.ButtonType ) : String
+	{method} -lambda$handleAddDevice$1 ( paramChoiceBox1 : javafx.scene.control.ChoiceBox , paramChoiceBox2 : javafx.scene.control.ChoiceBox , paramTextField3 : javafx.scene.control.TextField , paramTextField4 : javafx.scene.control.TextField , paramTextField5 : javafx.scene.control.TextField , paramTextField6 : javafx.scene.control.TextField , paramString7 : String ) : void
+	{method}  {static} -lambda$handleAddUser$0 ( paramTextField1 : javafx.scene.control.TextField , paramPasswordField2 : javafx.scene.control.PasswordField , paramButtonType3 : javafx.scene.control.ButtonType ) : javafx.util.Pair
+	{method} -lambda$handleAddUser$1 ( paramChoiceBox1 : javafx.scene.control.ChoiceBox , paramPair2 : javafx.util.Pair ) : void
+	{method} -lambda$handleBlockUser$0 ( paramString1 : String ) : void
+	{method} -lambda$handleChangeConfiguration$0 ( paramString1 : String ) : void
+	{method}  {static} -lambda$handleChangeConfiguration$1 ( paramButtonType1 : javafx.scene.control.ButtonType , paramButtonType2 : javafx.scene.control.ButtonType ) : String
+	{method} -lambda$handleChangeConfiguration$2 ( paramDevice1 : pl.edu.agh.po.Device , paramString2 : String ) : void
+	{method} -lambda$handleDeleteDevice$0 ( paramString1 : String ) : void
 	{method} -showAdminPanel () : void
 	{method} -showCeoPanel () : void
 	{method} -showLoginPanel () : void
