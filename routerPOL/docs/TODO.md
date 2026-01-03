@@ -6,7 +6,7 @@
 - [ ] autoryzacja 2fa przez google token
 - [ ] rozwinac te raporty, miesieczne itd
 - [ ] symulacja awarii urzadzen po jakims czasie czy cos
-- [ ] logi (co, kto, kiedy, z jakiego ip)
+- [x] logi (co, kto, kiedy, ~~z jakiego ip~~ )
 - [ ] historia zmian
 - [x] uzycie findby status i findby type dla devices
 - [x] uzycie find by id, find by role dla userow
