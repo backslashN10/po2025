@@ -8,6 +8,9 @@ import javafx.scene.layout.GridPane;
 import javafx.geometry.Insets;
 import javafx.util.Pair;
 import java.util.Optional;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -30,14 +33,27 @@ public class Controller {
     @FXML private Label welcomeTechnicianLabel;
     @FXML private Label technicianRoleLabel;
 
-    private AuthenticationService authService = AuthenticationService.getInstance();
-    private UserDAO userDAO = UserDAO.getInstance();
-    private DeviceDAO deviceDAO = DeviceDAO.getInstance();
-    private BusinessManager businessManager = BusinessManager.getInstance();
+    private final AuthenticationService authService = AuthenticationService.getInstance();
+    private final UserDAO userDAO = UserDAO.getInstance();
+    private final DeviceDAO deviceDAO = DeviceDAO.getInstance();
+    private final BusinessManager businessManager = BusinessManager.getInstance();
+    private static final Logger logger = Logger.getLogger(Controller.class.getName());
 
     @FXML
     public void initialize() {
+        setupLogging();
         showLoginPanel();
+    }
+
+    private void setupLogging() {
+        try {
+            FileHandler fileHandler = new FileHandler("app.log", true);
+            fileHandler.setFormatter(new SimpleFormatter());
+            logger.addHandler(fileHandler);
+            logger.info("logger initialized");
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     @FXML
@@ -47,6 +63,7 @@ public class Controller {
 
         if (authService.login(username, password)) {
             loginMessageLabel.setText("");
+            logger.info("user: " + username + " (" + authService.getCurrentUser().getRole() + ") logged in");
             switch (authService.getCurrentUser().getRole()) {
                 case ADMIN:
                     showAdminPanel();
@@ -61,6 +78,7 @@ public class Controller {
             usernameField.clear();
             passwordField.clear();
         } else {
+            logger.warning("user provided bad credentials");
             passwordField.clear();
             loginMessageLabel.setText("Invalid credentials!");
         }
@@ -68,12 +86,14 @@ public class Controller {
 
     @FXML
     private void handleLogout() {
+        logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") logged out");
         authService.logout();
         showLoginPanel();
     }
 
     @FXML
     private void handleExit() {
+        logger.info("app exited");
         Platform.exit();
     }
 
@@ -114,29 +134,23 @@ public class Controller {
     private void handleAddUser() {
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Dodaj użytkownika");
-
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
-
         TextField usernameField = new TextField();
         PasswordField passwordField = new PasswordField();
         ChoiceBox<UserRole> roleChoiceBox = new ChoiceBox<>();
         roleChoiceBox.getItems().addAll(UserRole.ADMIN, UserRole.CEO, UserRole.TECHNICIAN);
         roleChoiceBox.setValue(UserRole.TECHNICIAN);
-
         grid.add(new Label("Username:"), 0, 0);
         grid.add(usernameField, 1, 0);
         grid.add(new Label("Password:"), 0, 1);
         grid.add(passwordField, 1, 1);
         grid.add(new Label("Role:"), 0, 2);
         grid.add(roleChoiceBox, 1, 2);
-
         dialog.getDialogPane().setContent(grid);
-
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == ButtonType.OK) {
                 return new Pair<>(usernameField.getText(), passwordField.getText());
@@ -148,6 +162,8 @@ public class Controller {
         result.ifPresent(credentials -> {
             User newUser = new User(credentials.getKey(), credentials.getValue(), roleChoiceBox.getValue());
             userDAO.save(newUser);
+            logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new user to database with ID: " + newUser.getID());
+
         });
     }
 
@@ -162,6 +178,7 @@ public class Controller {
             User user = userDAO.findByUsername(username);
             if (user != null) {
                 userDAO.deleteByID(user.getID());
+                logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted user with ID: " + user.getID());
             }
         });
     }
@@ -181,6 +198,7 @@ public class Controller {
         alert.setHeaderText("Lista użytkowników");
         alert.setContentText(usersDB.toString());
         alert.showAndWait();
+        logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") looked at database");
     }
 
     @FXML
@@ -195,6 +213,7 @@ public class Controller {
             alert.setHeaderText("Raport został wygenerowany");
             alert.setContentText("Zapisano do pliku: " + filename);
             alert.showAndWait();
+            logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") created new report");
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
@@ -259,10 +278,12 @@ public class Controller {
                     configField.getText()
                 );
                 deviceDAO.save(device);
+                logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new device to database with ID: " + device.getId());
             } catch (NumberFormatException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setContentText("Invalid number format");
                 alert.showAndWait();
+                logger.warning("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") tried to add new device to database but insert invalid number format");
             }
         });
     }
@@ -300,12 +321,14 @@ public class Controller {
                     configResult.ifPresent(config -> {
                         device.setConfiguration(config);
                         deviceDAO.updateData(device);
+                        logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") change configuration of device with ID: " + device.getId());
                     });
                 }
             } catch (NumberFormatException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setContentText("Invalid ID");
                 alert.showAndWait();
+                logger.warning("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") tried to change configuration of device but provided invalid ID");
             }
         });
     }
@@ -321,10 +344,12 @@ public class Controller {
             try {
                 long id = Long.parseLong(idStr);
                 deviceDAO.deleteByID(id);
+                logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted device with ID: " + id);
             } catch (NumberFormatException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setContentText("Invalid ID");
                 alert.showAndWait();
+                logger.warning("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") tried to delet device but provided invalid ID");
             }
         });
     }
