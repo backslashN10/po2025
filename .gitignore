@@ -1,3 +1,7 @@
+# app data
+*.md
+*.log
+
 # Compiled class files
 *.class
 
