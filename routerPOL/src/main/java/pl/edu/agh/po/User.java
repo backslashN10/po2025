@@ -10,6 +10,15 @@ public class User {
     private boolean forcePasswordChange;
     private String totpSecret;
     private boolean totpEnabled;
+    private boolean forceTotpSetup;
+
+    public boolean isForceTotpSetup() {
+        return forceTotpSetup;
+    }
+
+    public void setForceTotpSetup(boolean forceTotpSetup) {
+        this.forceTotpSetup = forceTotpSetup;
+    }
 
     public User(long id, String username, String password, UserRole role) {
         this.id = id;
@@ -29,6 +38,7 @@ public class User {
         this.forcePasswordChange = false;
         this.totpEnabled = false;
         this.totpSecret = null;
+
     }
     public long getId(){
         return id;

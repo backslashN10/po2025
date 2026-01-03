@@ -78,6 +78,111 @@ public class Controller {
             System.err.println(e.getMessage());
         }
     }
+    private void handleFirstLoginTotp(User user) {
+        try {
+            // Sprawdzenie, czy użytkownik musi skonfigurować TOTP
+            if (!user.isForceTotpSetup()) {
+                return; // nic nie robimy, jeśli nie wymuszone
+            }
+
+            // 1. Generowanie sekretu Base32
+            KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA1");
+            keyGen.init(160);
+            SecretKey secretKey = keyGen.generateKey();
+            String base32Secret = new Base32().encodeToString(secretKey.getEncoded());
+
+            // zapis do bazy
+            user.setTotpSecret(base32Secret);
+            user.setTotpEnabled(true);
+            userDAO.updateData(user);
+
+            // 2. Generowanie URL do Google Authenticator
+            String otpAuthUrl = "otpauth://totp/YourApp:" + user.getUsername() +
+                    "?secret=" + base32Secret +
+                    "&issuer=YourApp&digits=6";
+
+            // 3. Tworzymy QR code
+            BitMatrix matrix = new MultiFormatWriter().encode(otpAuthUrl, BarcodeFormat.QR_CODE, 200, 200);
+            BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(matrix);
+            Image fxImage = SwingFXUtils.toFXImage(qrImage, null);
+
+            ImageView qrView = new ImageView(fxImage);
+            qrView.setFitWidth(200);
+            qrView.setFitHeight(200);
+
+            Alert qrAlert = new Alert(Alert.AlertType.INFORMATION);
+            qrAlert.setTitle("Set up 2FA");
+            qrAlert.setHeaderText("Scan this QR code with Google Authenticator");
+            qrAlert.getDialogPane().setContent(qrView);
+            qrAlert.showAndWait();
+
+            // 4. Prompt do wpisania kodu TOTP
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Two-Factor Authentication");
+            dialog.setHeaderText("Enter TOTP code from your authenticator app");
+            dialog.setContentText("Code:");
+
+            dialog.showAndWait().ifPresent(codeInput -> {
+                try {
+                    byte[] keyBytes = new Base32().decode(user.getTotpSecret());
+                    SecretKey key = new SecretKeySpec(keyBytes, "HmacSHA1");
+                    TimeBasedOneTimePasswordGenerator totp = new TimeBasedOneTimePasswordGenerator(Duration.ofSeconds(30));
+
+                    // weryfikacja ±1 krokiem
+                    boolean valid = false;
+                    Instant now = Instant.now();
+                    for (int i = -1; i <= 1; i++) {
+                        Instant t = now.plusSeconds(i * 30);
+                        String expectedCode = String.format("%06d", totp.generateOneTimePassword(key, t));
+                        if (expectedCode.equals(codeInput)) {
+                            valid = true;
+                            break;
+                        }
+                    }
+
+                    if (valid) {
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Success");
+                        info.setHeaderText("TOTP verified! Logging in...");
+                        info.showAndWait();
+
+                        // wyłączamy flagę wymuszenia konfiguracji
+                        user.setForceTotpSetup(false);
+                        userDAO.updateData(user);
+
+                        // pokazujemy panel wg roli
+                        switch (user.getRole()) {
+                            case ADMIN -> showAdminPanel();
+                            case CEO -> showCeoPanel();
+                            case TECHNICIAN -> showTechnicianPanel();
+                        }
+                    } else {
+                        Alert error = new Alert(Alert.AlertType.ERROR);
+                        error.setTitle("Error");
+                        error.setHeaderText("Invalid TOTP code!");
+                        error.showAndWait();
+                        handleFirstLoginTotp(user); // retry
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Alert error = new Alert(Alert.AlertType.ERROR);
+                    error.setTitle("Error");
+                    error.setHeaderText("TOTP verification failed!");
+                    error.showAndWait();
+                }
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert error = new Alert(Alert.AlertType.ERROR);
+            error.setTitle("Error");
+            error.setHeaderText("Failed to initialize TOTP!");
+            error.showAndWait();
+        }
+    }
+
+
     private void showTotpPrompt() {
         User user = authService.getCurrentUser();
 
@@ -366,6 +471,9 @@ public class Controller {
         Optional<Pair<String, String>> result = dialog.showAndWait();
         result.ifPresent(credentials -> {
             User newUser = new User(credentials.getKey(), credentials.getValue(), roleChoiceBox.getValue());
+            newUser.setForceTotpSetup(true); // nowa kolumna w DB
+
+            newUser.setForceTotpSetup(true);
             userDAO.save(newUser);
             logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new user to database with ID: " + newUser.getId());
 

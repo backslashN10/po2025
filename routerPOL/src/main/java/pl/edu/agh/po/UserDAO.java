@@ -56,7 +56,8 @@ public class UserDAO {
                 bootstrap INTEGER DEFAULT 0,
                 force_password_change INTEGER DEFAULT 0,
                 totp_secret TEXT,
-                totp_enabled INTEGER DEFAULT 0
+                totp_enabled INTEGER DEFAULT 0,
+                force_totp_setup INTEGER DEFAULT 1
                 );
                 """;
         try (Statement stmt = connection.createStatement()) {
@@ -93,6 +94,8 @@ public class UserDAO {
                 user.setForcePasswordChange(rs.getInt("force_password_change") == 1);
                 user.setTotpSecret(rs.getString("totp_secret"));
                 user.setTotpEnabled(rs.getInt("totp_enabled") == 1);
+                user.setForceTotpSetup(rs.getInt("force_totp_setup") == 1);
+
                 return user;
             }
         } catch (SQLException e) {
@@ -118,6 +121,8 @@ public class UserDAO {
                 user.setForcePasswordChange(rs.getInt("force_password_change") == 1);
                 user.setTotpSecret(rs.getString("totp_secret"));
                 user.setTotpEnabled(rs.getInt("totp_enabled") == 1);
+                user.setForceTotpSetup(rs.getInt("force_totp_setup") == 1);
+
                 return user;
             }
         } catch (SQLException e) {
@@ -143,6 +148,8 @@ public class UserDAO {
                 user.setForcePasswordChange(rs.getInt("force_password_change") == 1);
                 user.setTotpSecret(rs.getString("totp_secret"));
                 user.setTotpEnabled(rs.getInt("totp_enabled") == 1);
+                user.setForceTotpSetup(rs.getInt("force_totp_setup") == 1);
+
                 return user;
             }
         } catch (SQLException e) {
@@ -166,7 +173,7 @@ public class UserDAO {
     }
 
     public void save(User user) {
-        String sql = "INSERT INTO users (username, password, role, bootstrap, force_password_change, totp_secret, totp_enabled) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (username, password, role, bootstrap, force_password_change, totp_secret, totp_enabled,force_totp_setup) VALUES (?,?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, user.getUsername());
             pstmt.setString(2, PasswordEncryption.hash(user.getPassword()));
@@ -175,6 +182,7 @@ public class UserDAO {
             pstmt.setInt(5, user.isForcePasswordChange() ? 1 : 0);
             pstmt.setString(6, user.getTotpSecret());
             pstmt.setInt(7, user.isTotpEnabled() ? 1 : 0);
+            pstmt.setInt(8, user.isForceTotpSetup() ? 1 : 0);
 
             pstmt.executeUpdate();
 
@@ -209,7 +217,9 @@ public class UserDAO {
                 pstmt.setInt(5, user.isForcePasswordChange() ? 1 : 0);
                 pstmt.setString(6, user.getTotpSecret());
                 pstmt.setInt(7, user.isTotpEnabled() ? 1 : 0);
-                pstmt.setLong(8, user.getId());
+                pstmt.setInt(8, user.isForceTotpSetup() ? 1 : 0);
+                pstmt.setLong(9, user.getId());
+
                 pstmt.executeUpdate();
             } catch (Exception e) {
                 e.printStackTrace();
