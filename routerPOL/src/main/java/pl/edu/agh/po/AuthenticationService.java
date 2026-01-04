@@ -15,21 +15,47 @@ public class AuthenticationService{
         }
         return instance;
     }
-    public boolean login(String username, String password){
-        User userLookup = userDAO.findByUsername(username);
-        if (userLookup != null){
-            if (PasswordEncryption.verify(password, userLookup.getPassword())){
-                currentUser = userLookup;
-                return true;
-            }
-        }
-        return false;
+    public enum AuthStatus {
+        SUCCESS,
+        BOOTSTRAP_REQUIRED,
+        PASSWORD_CHANGE_REQUIRED,
+        TOTP_REQUIRED,
+        INVALID_CREDENTIALS
     }
-    public void logout(){
+
+    public AuthStatus login(String username, String password) {
+        User userLookup = userDAO.findByUsername(username);
+
+        if (userLookup == null || !PasswordEncryption.verify(password, userLookup.getPassword())) {
+            return AuthStatus.INVALID_CREDENTIALS;
+        }
+        currentUser = userLookup;
+
+        if (userLookup.isBootstrap()) {
+            return AuthStatus.BOOTSTRAP_REQUIRED;
+        }
+        if (userLookup.isForcePasswordChange()) {
+            return AuthStatus.PASSWORD_CHANGE_REQUIRED;
+        }
+        if (userLookup.isForceTotpSetup()) {
+            currentUser =  userLookup;
+            return AuthStatus.TOTP_REQUIRED;
+        }
+        if (userLookup.isTotpEnabled()) {
+            currentUser = userLookup;
+            return AuthStatus.TOTP_REQUIRED;
+        }
+        return AuthStatus.SUCCESS;
+    }
+
+    public void logout() {
         currentUser = null;
     }
-    public User getCurrentUser(){
+
+    public User getCurrentUser() {
         return currentUser;
     }
 }
+
+
 

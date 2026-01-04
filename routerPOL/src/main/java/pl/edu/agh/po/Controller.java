@@ -1,12 +1,30 @@
 package pl.edu.agh.po;
 
+import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
 import javafx.geometry.Insets;
 import javafx.util.Pair;
+import javafx.embed.swing.SwingFXUtils;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
+
+import java.awt.image.BufferedImage;
+import java.sql.SQLException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
@@ -16,6 +34,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import javafx.scene.input.Clipboard;
+import org.apache.commons.codec.binary.Base32;
+
 
 public class Controller {
 
@@ -55,40 +75,333 @@ public class Controller {
             System.err.println(e.getMessage());
         }
     }
+    private void showPanelForRole(User user)
+    {
+        switch (user.getRole()) {
+            case ADMIN -> showAdminPanel();
+            case CEO -> showCeoPanel();
+            case TECHNICIAN -> showTechnicianPanel();
+            default -> throw new IllegalStateException(
+                    "Unknown role: " + user.getRole());
+        }
+    }
+    private void promptForTotpCode(User user) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Two-Factor Authentication");
+        dialog.setHeaderText("Enter TOTP code from your authenticator app");
+        dialog.setContentText("Code:");
+
+        dialog.showAndWait().ifPresent(codeInput -> {
+            try {
+                // Pobranie sekretu z bazy
+                String secret = user.getTotpSecret();
+                if (secret == null || secret.isBlank()) {
+                    throw new IllegalStateException("TOTP secret is empty!");
+                }
+
+                byte[] keyBytes = new Base32().decode(secret);
+                SecretKey key = new SecretKeySpec(keyBytes, "HmacSHA1");
+
+                // Generator TOTP
+                TimeBasedOneTimePasswordGenerator totp =
+                        new TimeBasedOneTimePasswordGenerator(Duration.ofSeconds(30));
+
+                // Weryfikacja ±1 krokiem (±30 sekund)
+                boolean valid = false;
+                Instant now = Instant.now();
+                for (int i = -1; i <= 1; i++) {
+                    Instant t = now.plusSeconds(i * 30);
+                    String expected = String.format("%06d", totp.generateOneTimePassword(key, t));
+                    if (expected.equals(codeInput)) {
+                        valid = true;
+                        break;
+                    }
+                }
+
+                if (valid) {
+                    // Poprawny kod: zapisujemy stan użytkownika
+                    user.setForceTotpSetup(false);
+                    user.setTotpEnabled(true);
+                    userDAO.updateData(user);
+
+                    // Logowanie i pokazanie panelu
+                    completeLogin(user);
+                    showPanelForRole(user);
+
+                } else {
+                    // Błędny kod: retry
+                    Alert error = new Alert(Alert.AlertType.ERROR);
+                    error.setTitle("Invalid code");
+                    error.setHeaderText("The TOTP code is incorrect. Please try again.");
+                    error.showAndWait();
+
+                    promptForTotpCode(user); // wywołanie rekursywne
+                }
+
+            } catch (Exception e) {
+                Alert error = new Alert(Alert.AlertType.ERROR);
+                error.setTitle("Error");
+                error.setHeaderText("TOTP verification failed!");
+                error.showAndWait();
+            }
+        });
+    }
+    private void handleFirstLoginTotp(User user) {
+        try {
+            // Sprawdzenie, czy użytkownik musi skonfigurować TOTP
+            if (!user.isForceTotpSetup()) {
+                return; // nic nie robimy, jeśli nie wymuszone
+            }
+
+            if (user.getTotpSecret() == null || user.getTotpSecret().isBlank()) {
+                KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA1");
+                keyGen.init(160);
+                SecretKey secretKey = keyGen.generateKey();
+
+                String base32Secret = new Base32().encodeToString(secretKey.getEncoded());
+
+                user.setTotpSecret(base32Secret);
+                user.setTotpEnabled(false);
+                userDAO.updateData(user);
+
+                String otpAuthUrl =
+                        "otpauth://totp/YourApp:" + user.getUsername() +
+                                "?secret=" + base32Secret +
+                                "&issuer=YourApp&digits=6";
+
+                BitMatrix matrix = new MultiFormatWriter()
+                        .encode(otpAuthUrl, BarcodeFormat.QR_CODE, 200, 200);
+
+                Image fxImage = SwingFXUtils.toFXImage(
+                        MatrixToImageWriter.toBufferedImage(matrix), null);
+
+                ImageView qrView = new ImageView(fxImage);
+
+                Alert qrAlert = new Alert(Alert.AlertType.INFORMATION);
+                qrAlert.setTitle("Set up 2FA");
+                qrAlert.setHeaderText("Scan this QR code with your TOTP authentication app");
+                qrAlert.getDialogPane().setContent(qrView);
+                qrAlert.showAndWait();
+            }
+            // 🔁 2. TYLKO pytamy o kod (może być retry)
+            promptForTotpCode(user);
+
+        } catch (Exception e) {
+            Alert error = new Alert(Alert.AlertType.ERROR);
+            error.setTitle("Error");
+        }
+    }
+
+    private void completeLogin(User user) {
+        Alert info = new Alert(Alert.AlertType.INFORMATION);
+        info.setTitle("Success");
+        info.setHeaderText("Logging in");
+        info.setContentText("Verification successful!");
+        info.showAndWait();
+
+        showPanelForRole(user);
+    }
+
+    private void showTotpPrompt(User user) {
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Two-Factor Authentication");
+        dialog.setHeaderText("Enter TOTP code from your authenticator app");
+        dialog.setContentText("Code:");
+
+        dialog.showAndWait().ifPresent(codeInput -> {
+            try {
+                String secret = user.getTotpSecret();
+                if (secret == null || secret.isBlank()) {
+                    throw new IllegalStateException("TOTP secret is empty!");
+                }
+                byte[] keyBytes = new Base32().decode(secret);
+                SecretKey key = new SecretKeySpec(keyBytes, "HmacSHA1");
+
+                // Tworzymy generator TOTP
+                TimeBasedOneTimePasswordGenerator totp = new TimeBasedOneTimePasswordGenerator(Duration.ofSeconds(30));
+
+                // Generujemy aktualny kod TOTP
+                String expectedCode = String.format("%06d",
+                        totp.generateOneTimePassword(key, java.time.Instant.now()));
+
+                if (expectedCode.equals(codeInput)) {
+                    Alert info = new Alert(Alert.AlertType.INFORMATION);
+                    info.setTitle("Success");
+                    info.setHeaderText("TOTP verified! Logging in...");
+                    info.showAndWait();
+
+                    // Po poprawnym kodzie pokazujemy panel wg roli
+                    showPanelForRole(user);
+                } else {
+                    Alert error = new Alert(Alert.AlertType.ERROR);
+                    error.setTitle("Error");
+                    error.setHeaderText("Invalid TOTP code!");
+                    error.showAndWait();
+
+                    // Pozwalamy użytkownikowi spróbować ponownie
+                    showTotpPrompt(user);
+                }
+            } catch (Exception e) {
+                Alert error = new Alert(Alert.AlertType.ERROR);
+                error.setTitle("Error");
+                error.setHeaderText("TOTP verification failed!");
+                error.showAndWait();
+            }
+        });
+    }
+
+    private void showPasswordChangeDialog(User user, boolean afterBootstrap) {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Change Password");
+        dialog.setHeaderText("Enter new password:");
+
+        PasswordField newPasswordField = new PasswordField();
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.add(new Label("New Password:"), 0, 0);
+        grid.add(newPasswordField, 1, 0);
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                return newPasswordField.getText();
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(newPassword -> {
+            if (!newPassword.isBlank()) {
+                user.setPassword(PasswordEncryption.hash(newPassword));
+                user.setForcePasswordChange(false);
+                try {
+                    userDAO.updateData(user);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+
+                if (afterBootstrap || user.isForceTotpSetup()) {
+                    // po zmianie hasła konfigurujemy TOTP
+                    handleFirstLoginTotp(user);
+                } else {
+                    completeLogin(user);
+                    showPanelForRole(user);
+                }
+            }
+        });
+    }
 
     @FXML
     private void handleLogin() {
         String username = usernameField.getText();
         String password = passwordField.getText();
+        AuthenticationService.AuthStatus status = authService.login(username, password);
+        User user = authService.getCurrentUser();
 
-        if (authService.login(username, password)) {
-            loginMessageLabel.setText("");
-            logger.info("user: " + username + " (" + authService.getCurrentUser().getRole() + ") logged in");
-            switch (authService.getCurrentUser().getRole()) {
-                case ADMIN:
-                    showAdminPanel();
-                    break;
-                case CEO:
-                    showCeoPanel();
-                    break;
-                case TECHNICIAN:
-                    showTechnicianPanel();
-                    break;
+        usernameField.clear();
+        passwordField.clear();
+        switch(status) {
+            case SUCCESS -> {
+                    loginMessageLabel.setText("");
+                    logger.info("user: " + username + " (" + user.getRole() + ") logged in");
+                    showPanelForRole(user);
             }
-            usernameField.clear();
-            passwordField.clear();
-        } else {
-            logger.warning("user provided bad credentials");
-            passwordField.clear();
-            loginMessageLabel.setText("Invalid credentials!");
+            case BOOTSTRAP_REQUIRED -> {
+                loginMessageLabel.setText("Bootstrap admin: set password & enable 2FA");
+                showBootstrapSetup();
+            }
+            case PASSWORD_CHANGE_REQUIRED ->  {
+                loginMessageLabel.setText("Password change required");
+                showPasswordChangeDialog(user,false);
+            }
+            case TOTP_REQUIRED -> {
+                if (user.isForceTotpSetup()) {
+                    handleFirstLoginTotp(user);
+                } else {
+                    showTotpPrompt(user);
+                }
+            }
+            case INVALID_CREDENTIALS ->  {
+                loginMessageLabel.setText("Invalid credentials!");
+                passwordField.clear();}
+            }
         }
-    }
-
     @FXML
     private void handleLogout() {
         logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") logged out");
         authService.logout();
         showLoginPanel();
+    }
+    private void showBootstrapSetup() {
+        User user = authService.getCurrentUser();
+
+        // 1. Dialog zmiany hasła
+        TextInputDialog passwordDialog = new TextInputDialog();
+        passwordDialog.setTitle("Bootstrap Admin Setup");
+        passwordDialog.setHeaderText("Set a new password for bootstrap admin");
+        passwordDialog.setContentText("New password:");
+
+        passwordDialog.showAndWait().ifPresent(newPassword -> {
+            if (!newPassword.isBlank()) {
+                try {
+                    // Zapisz nowe hasło
+                    user.setPassword(newPassword);
+                    user.setForcePasswordChange(false);
+                    user.setBootstrap(false);
+
+                    // Generowanie sekretu TOTP
+                    KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA1");
+                    keyGen.init(160); // standard TOTP = 160 bitów
+                    SecretKey secretKey = keyGen.generateKey();
+
+                    // zapis Base32 do bazy
+                    Base32 base32 = new Base32();
+                    String base32Secret = base32.encodeToString(secretKey.getEncoded()).replace("=", ""); // usuń padding
+                    user.setTotpSecret(base32Secret);
+                    user.setTotpEnabled(true);
+                    userDAO.updateData(user);
+
+                    // Generowanie URL do Google Authenticator
+                    // Format: otpauth://totp/<issuer>:<account>?secret=<secret>&issuer=<issuer>&digits=6
+                    String otpAuthUrl = "otpauth://totp/YourApp:" + user.getUsername() +
+                            "?secret=" + base32Secret +
+                            "&issuer=YourApp&digits=6";
+
+                    // Tworzymy QR code
+                    BitMatrix matrix = new MultiFormatWriter().encode(otpAuthUrl, BarcodeFormat.QR_CODE, 200, 200);
+                    BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(matrix);
+                    Image fxImage = SwingFXUtils.toFXImage(qrImage, null);
+
+                    // Pokazanie QR code w dialogu
+                    ImageView qrView = new ImageView(fxImage);
+                    qrView.setFitWidth(200);
+                    qrView.setFitHeight(200);
+
+                    Alert qrAlert = new Alert(Alert.AlertType.INFORMATION);
+                    qrAlert.setTitle("Set up 2FA");
+                    qrAlert.setHeaderText("Scan this QR code with your TOTP authentication app");
+                    qrAlert.getDialogPane().setContent(qrView);
+                    qrAlert.showAndWait();
+
+                    // Po skonfigurowaniu TOTP od razu prompt do kodu
+                    showTotpPrompt(user);
+
+                } catch (Exception e) {
+                    Alert error = new Alert(Alert.AlertType.ERROR);
+                    error.setTitle("Error");
+                    error.setHeaderText("Failed to setup bootstrap");
+                    error.showAndWait();
+                }
+
+            } else {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Warning");
+                alert.setHeaderText("Password cannot be empty!");
+                alert.showAndWait();
+            }
+        });
     }
 
     @FXML
@@ -96,40 +409,34 @@ public class Controller {
         logger.info("app exited");
         Platform.exit();
     }
-
     private void hideAllPanels() {
         loginPanel.setVisible(false);
         adminPanel.setVisible(false);
         ceoPanel.setVisible(false);
         technicianPanel.setVisible(false);
     }
-
     private void showLoginPanel() {
         hideAllPanels();
         loginPanel.setVisible(true);
     }
-
     private void showAdminPanel() {
         hideAllPanels();
         adminPanel.setVisible(true);
         welcomeAdminLabel.setText("logged in as: " + authService.getCurrentUser().getUsername());
         adminRoleLabel.setText("user role: admin");
     }
-
     private void showCeoPanel() {
         hideAllPanels();
         ceoPanel.setVisible(true);
         welcomeCeoLabel.setText("logged in as: " + authService.getCurrentUser().getUsername());
         ceoRoleLabel.setText("user role: ceo");
     }
-
     private void showTechnicianPanel() {
         hideAllPanels();
         technicianPanel.setVisible(true);
         welcomeTechnicianLabel.setText("logged in as: " + authService.getCurrentUser().getUsername());
         technicianRoleLabel.setText("user role: technician");
     }
-
     @FXML
     private void handleAddUser() {
         Dialog<Pair<String, String>> dialog = new Dialog<>();
@@ -161,12 +468,14 @@ public class Controller {
         Optional<Pair<String, String>> result = dialog.showAndWait();
         result.ifPresent(credentials -> {
             User newUser = new User(credentials.getKey(), credentials.getValue(), roleChoiceBox.getValue());
+            newUser.setForceTotpSetup(true);
+            newUser.setForcePasswordChange(true);
+
             userDAO.save(newUser);
-            logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new user to database with ID: " + newUser.getID());
+            logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new user to database with ID: " + newUser.getId());
 
         });
     }
-
     @FXML
     private void handleBlockUser() {
         TextInputDialog dialog = new TextInputDialog();
@@ -177,8 +486,8 @@ public class Controller {
         result.ifPresent(username -> {
             User user = userDAO.findByUsername(username);
             if (user != null) {
-                userDAO.deleteByID(user.getID());
-                logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted user with ID: " + user.getID());
+                userDAO.deleteByID(user.getId());
+                logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted user with ID: " + user.getId());
             }
         });
     }
@@ -187,7 +496,7 @@ public class Controller {
     private void handleShowDatabase() {
         StringBuilder usersDB = new StringBuilder();
         for (User user : userDAO.findALL()) {
-            usersDB.append("ID: ").append(user.getID()).append("\n");
+            usersDB.append("ID: ").append(user.getId()).append("\n");
             usersDB.append("Username: ").append(user.getUsername()).append("\n");
             usersDB.append("Role: ").append(user.getRole()).append("\n");
             usersDB.append("-------------------\n");
@@ -287,7 +596,6 @@ public class Controller {
             }
         });
     }
-
     @FXML
     private void handleChangeConfiguration() {
         TextInputDialog idDialog = new TextInputDialog();
@@ -332,7 +640,6 @@ public class Controller {
             }
         });
     }
-
     @FXML
     private void handleDeleteDevice() {
         TextInputDialog dialog = new TextInputDialog();
