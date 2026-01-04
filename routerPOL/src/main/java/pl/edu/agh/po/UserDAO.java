@@ -208,7 +208,7 @@ public class UserDAO {
     }
 
     public void updateData(User user) throws SQLException {
-        String sql = "UPDATE users SET username = ?, password = ?, role = ?, bootstrap = ?, force_password_change = ?, totp_secret = ?, totp_enabled = ? WHERE id = ?";
+        String sql = "UPDATE users SET username = ?, password = ?, role = ?, bootstrap = ?, force_password_change = ?, totp_secret = ?, totp_enabled = ?,force_totp_setup = ? WHERE id = ?";
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                 pstmt.setString(1, user.getUsername());
                 pstmt.setString(2, PasswordEncryption.hash(user.getPassword()));
