@@ -92,23 +92,29 @@ public class Controller {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Two-Factor Authentication");
         dialog.setHeaderText("Enter TOTP code from your authenticator app");
+        dialog.setContentText("Code:");
 
         dialog.showAndWait().ifPresent(codeInput -> {
             try {
-                byte[] keyBytes = new Base32().decode(user.getTotpSecret());
+                // Pobranie sekretu z bazy
+                String secret = user.getTotpSecret();
+                if (secret == null || secret.isBlank()) {
+                    throw new IllegalStateException("TOTP secret is empty!");
+                }
+
+                byte[] keyBytes = new Base32().decode(secret);
                 SecretKey key = new SecretKeySpec(keyBytes, "HmacSHA1");
 
+                // Generator TOTP
                 TimeBasedOneTimePasswordGenerator totp =
                         new TimeBasedOneTimePasswordGenerator(Duration.ofSeconds(30));
 
+                // Weryfikacja ±1 krokiem (±30 sekund)
                 boolean valid = false;
                 Instant now = Instant.now();
-
                 for (int i = -1; i <= 1; i++) {
                     Instant t = now.plusSeconds(i * 30);
-                    String expected = String.format("%06d",
-                            totp.generateOneTimePassword(key, t));
-
+                    String expected = String.format("%06d", totp.generateOneTimePassword(key, t));
                     if (expected.equals(codeInput)) {
                         valid = true;
                         break;
@@ -116,17 +122,31 @@ public class Controller {
                 }
 
                 if (valid) {
+                    // Poprawny kod: zapisujemy stan użytkownika
                     user.setForceTotpSetup(false);
                     user.setTotpEnabled(true);
                     userDAO.updateData(user);
+
+                    // Logowanie i pokazanie panelu
                     completeLogin(user);
                     showPanelForRole(user);
+
                 } else {
-                    promptForTotpCode(user); // retry BEZ zmiany sekretu
+                    // Błędny kod: retry
+                    Alert error = new Alert(Alert.AlertType.ERROR);
+                    error.setTitle("Invalid code");
+                    error.setHeaderText("The TOTP code is incorrect. Please try again.");
+                    error.showAndWait();
+
+                    promptForTotpCode(user); // wywołanie rekursywne
                 }
 
             } catch (Exception e) {
                 e.printStackTrace();
+                Alert error = new Alert(Alert.AlertType.ERROR);
+                error.setTitle("Error");
+                error.setHeaderText("TOTP verification failed!");
+                error.showAndWait();
             }
         });
     }
@@ -238,49 +258,44 @@ public class Controller {
         });
     }
 
-    private void showPasswordChangeDialog() {
-        User user = authService.getCurrentUser();
-
-        TextInputDialog dialog = new TextInputDialog();
+    private void showPasswordChangeDialog(User user, boolean afterBootstrap) {
+        Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Change Password");
-        dialog.setHeaderText("You must change your password");
-        dialog.setContentText("New password:");
+        dialog.setHeaderText("Enter new password:");
 
-        // pokaż dialog i poczekaj na wprowadzenie hasła
+        PasswordField newPasswordField = new PasswordField();
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.add(new Label("New Password:"), 0, 0);
+        grid.add(newPasswordField, 1, 0);
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                return newPasswordField.getText();
+            }
+            return null;
+        });
+
         dialog.showAndWait().ifPresent(newPassword -> {
             if (!newPassword.isBlank()) {
-                // hashujemy hasło i zapisujemy w userze
-                user.setPassword(newPassword);
-                user.setForcePasswordChange(false); // hasło zmienione
+                user.setPassword(PasswordEncryption.hash(newPassword));
+                user.setForcePasswordChange(false);
                 try {
-                    userDAO.updateData(user);           // zapis do bazy
+                    userDAO.updateData(user);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
 
-                Alert info = new Alert(Alert.AlertType.INFORMATION);
-                info.setTitle("Success");
-                info.setHeaderText("Password changed successfully!");
-                info.showAndWait();
-
-                // po zmianie hasła możemy od razu sprawdzić TOTP lub pokazać panel
-                if(user.isForceTotpSetup())
-                {
+                if (afterBootstrap || user.isForceTotpSetup()) {
+                    // po zmianie hasła konfigurujemy TOTP
                     handleFirstLoginTotp(user);
-                }
-                if (user.isTotpEnabled()) {
-                    showTotpPrompt(user);
                 } else {
+                    completeLogin(user);
                     showPanelForRole(user);
                 }
-            }else {
-                // jeśli użytkownik nie poda hasła → pokaz alert i zostaje w dialogu
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Warning");
-                alert.setHeaderText("Password cannot be empty!");
-                alert.showAndWait();
-                // ponownie wywołujemy dialog
-                showPasswordChangeDialog();
             }
         });
     }
@@ -307,7 +322,7 @@ public class Controller {
             }
             case PASSWORD_CHANGE_REQUIRED ->  {
                 loginMessageLabel.setText("Password change required");
-                showPasswordChangeDialog();
+                showPasswordChangeDialog(user,false);
             }
             case TOTP_REQUIRED -> {
                 if (user.isForceTotpSetup()) {
