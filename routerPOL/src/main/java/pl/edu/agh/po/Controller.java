@@ -299,6 +299,9 @@ public class Controller extends Thread {
         String username = usernameField.getText();
         String password = passwordField.getText();
 
+        usernameField.clear();
+        passwordField.clear();
+
         loginButton.setDisable(true);
         loginMessageLabel.setText("Logging in...");
 
@@ -309,8 +312,7 @@ public class Controller extends Thread {
 
             Platform.runLater(() -> {
                 // GUI MUSI być na FX thread
-                usernameField.clear();
-                passwordField.clear();
+
                 loginButton.setDisable(false);
 
                 switch (status) {
@@ -461,22 +463,27 @@ public class Controller extends Thread {
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Dodaj użytkownika");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
+
         TextField usernameField = new TextField();
         PasswordField passwordField = new PasswordField();
         ChoiceBox<UserRole> roleChoiceBox = new ChoiceBox<>();
         roleChoiceBox.getItems().addAll(UserRole.ADMIN, UserRole.CEO, UserRole.TECHNICIAN);
         roleChoiceBox.setValue(UserRole.TECHNICIAN);
+
         grid.add(new Label("Username:"), 0, 0);
         grid.add(usernameField, 1, 0);
         grid.add(new Label("Password:"), 0, 1);
         grid.add(passwordField, 1, 1);
         grid.add(new Label("Role:"), 0, 2);
         grid.add(roleChoiceBox, 1, 2);
+
         dialog.getDialogPane().setContent(grid);
+
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == ButtonType.OK) {
                 return new Pair<>(usernameField.getText(), passwordField.getText());
@@ -486,16 +493,43 @@ public class Controller extends Thread {
 
         Optional<Pair<String, String>> result = dialog.showAndWait();
         result.ifPresent(credentials -> {
-            User newUser = new User(credentials.getKey(), credentials.getValue(), roleChoiceBox.getValue());
+
+            User newUser = new User(
+                    credentials.getKey(),
+                    credentials.getValue(),
+                    roleChoiceBox.getValue()
+            );
+
             newUser.setForceTotpSetup(true);
             newUser.setForcePasswordChange(true);
 
-            new Thread(() -> userDAO.save(newUser)).start();
+            new Thread(() -> {
+                try {
+                    userDAO.save(newUser);
 
-            logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new user to database with ID: " + newUser.getId());
+                    Platform.runLater(() -> {
+                        logger.info("User added: " + newUser.getUsername());
+                    });
 
+                } catch (UserAlreadyExistsException e) {
+
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Błąd");
+                        alert.setHeaderText("Nie można dodać użytkownika");
+                        alert.setContentText(
+                                "Użytkownik o takiej nazwie już istnieje.\nWybierz inną nazwę."
+                        );
+                        alert.showAndWait();
+                    });
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
         });
     }
+
     @FXML
     private void handleBlockUser() {
         TextInputDialog dialog = new TextInputDialog();
