@@ -43,6 +43,7 @@ public class AuthenticationService{
             return AuthStatus.TOTP_REQUIRED; // wymusza konfigurację przy pierwszym logowaniu
         }
 
+
         if (userLookup.isTotpEnabled()) {
             currentUser = userLookup;
             return AuthStatus.TOTP_REQUIRED;

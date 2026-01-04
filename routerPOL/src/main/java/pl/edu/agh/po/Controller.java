@@ -116,10 +116,11 @@ public class Controller {
                 }
 
                 if (valid) {
-                    user.setTotpEnabled(true);
                     user.setForceTotpSetup(false);
+                    user.setTotpEnabled(true);
                     userDAO.updateData(user);
                     completeLogin(user);
+                    showPanelForRole(user);
                 } else {
                     promptForTotpCode(user); // retry BEZ zmiany sekretu
                 }
@@ -185,8 +186,8 @@ public class Controller {
         showPanelForRole(user);
     }
 
-    private void showTotpPrompt() {
-        User user = authService.getCurrentUser();
+    private void showTotpPrompt(User user) {
+        //User user = authService.getCurrentUser();
 
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Two-Factor Authentication");
@@ -225,7 +226,7 @@ public class Controller {
                     error.showAndWait();
 
                     // Pozwalamy użytkownikowi spróbować ponownie
-                    showTotpPrompt();
+                    showTotpPrompt(user);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -263,8 +264,12 @@ public class Controller {
                 info.showAndWait();
 
                 // po zmianie hasła możemy od razu sprawdzić TOTP lub pokazać panel
+                if(user.isForceTotpSetup())
+                {
+                    handleFirstLoginTotp(user);
+                }
                 if (user.isTotpEnabled()) {
-                    showTotpPrompt();
+                    showTotpPrompt(user);
                 } else {
                     showPanelForRole(user);
                 }
@@ -308,7 +313,7 @@ public class Controller {
                 if (user.isForceTotpSetup()) {
                     handleFirstLoginTotp(user);   // 🔥 TU
                 } else {
-                    showTotpPrompt();             // 🔥 TU
+                    showTotpPrompt(user);             // 🔥 TU
                 }
             }
             case INVALID_CREDENTIALS ->  {
@@ -374,7 +379,7 @@ public class Controller {
                     qrAlert.showAndWait();
 
                     // Po skonfigurowaniu TOTP od razu prompt do kodu
-                    showTotpPrompt();
+                    showTotpPrompt(user);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -464,6 +469,7 @@ public class Controller {
         result.ifPresent(credentials -> {
             User newUser = new User(credentials.getKey(), credentials.getValue(), roleChoiceBox.getValue());
             newUser.setForceTotpSetup(true); // nowa kolumna w DB
+            newUser.setForcePasswordChange(true);
 
             userDAO.save(newUser);
             logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new user to database with ID: " + newUser.getId());
