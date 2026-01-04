@@ -37,7 +37,7 @@ import javafx.scene.input.Clipboard;
 import org.apache.commons.codec.binary.Base32;
 
 
-public class Controller {
+public class Controller extends Thread {
 
     @FXML private VBox loginPanel;
     @FXML private TextField usernameField;
@@ -52,6 +52,7 @@ public class Controller {
     @FXML private VBox technicianPanel;
     @FXML private Label welcomeTechnicianLabel;
     @FXML private Label technicianRoleLabel;
+    @FXML private Button loginButton;
 
     private final AuthenticationService authService = AuthenticationService.getInstance();
     private final UserDAO userDAO = UserDAO.getInstance();
@@ -297,37 +298,55 @@ public class Controller {
     private void handleLogin() {
         String username = usernameField.getText();
         String password = passwordField.getText();
-        AuthenticationService.AuthStatus status = authService.login(username, password);
-        User user = authService.getCurrentUser();
 
-        usernameField.clear();
-        passwordField.clear();
-        switch(status) {
-            case SUCCESS -> {
-                    loginMessageLabel.setText("");
-                    logger.info("user: " + username + " (" + user.getRole() + ") logged in");
-                    showPanelForRole(user);
-            }
-            case BOOTSTRAP_REQUIRED -> {
-                loginMessageLabel.setText("Bootstrap admin: set password & enable 2FA");
-                showBootstrapSetup();
-            }
-            case PASSWORD_CHANGE_REQUIRED ->  {
-                loginMessageLabel.setText("Password change required");
-                showPasswordChangeDialog(user,false);
-            }
-            case TOTP_REQUIRED -> {
-                if (user.isForceTotpSetup()) {
-                    handleFirstLoginTotp(user);
-                } else {
-                    showTotpPrompt(user);
+        loginButton.setDisable(true);
+        loginMessageLabel.setText("Logging in...");
+
+        new Thread(() -> {
+            AuthenticationService.AuthStatus status =
+                    authService.login(username, password);
+            User user = authService.getCurrentUser();
+
+            Platform.runLater(() -> {
+                // GUI MUSI być na FX thread
+                usernameField.clear();
+                passwordField.clear();
+                loginButton.setDisable(false);
+
+                switch (status) {
+                    case SUCCESS -> {
+                        loginMessageLabel.setText("");
+                        logger.info("user: " + username + " (" + user.getRole() + ") logged in");
+                        showPanelForRole(user);
+                    }
+
+                    case BOOTSTRAP_REQUIRED -> {
+                        loginMessageLabel.setText("Bootstrap admin: set password & enable 2FA");
+                        showBootstrapSetup();
+                    }
+
+                    case PASSWORD_CHANGE_REQUIRED -> {
+                        loginMessageLabel.setText("Password change required");
+                        showPasswordChangeDialog(user, false);
+                    }
+
+                    case TOTP_REQUIRED -> {
+                        loginMessageLabel.setText("");
+                        if (user.isForceTotpSetup()) {
+                            handleFirstLoginTotp(user);
+                        } else {
+                            showTotpPrompt(user);
+                        }
+                    }
+
+                    case INVALID_CREDENTIALS -> {
+                        loginMessageLabel.setText("Invalid credentials!");
+                    }
                 }
-            }
-            case INVALID_CREDENTIALS ->  {
-                loginMessageLabel.setText("Invalid credentials!");
-                passwordField.clear();}
-            }
-        }
+            });
+        }).start();
+    }
+
     @FXML
     private void handleLogout() {
         logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") logged out");
@@ -471,7 +490,8 @@ public class Controller {
             newUser.setForceTotpSetup(true);
             newUser.setForcePasswordChange(true);
 
-            userDAO.save(newUser);
+            new Thread(() -> userDAO.save(newUser)).start();
+
             logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new user to database with ID: " + newUser.getId());
 
         });
@@ -486,7 +506,7 @@ public class Controller {
         result.ifPresent(username -> {
             User user = userDAO.findByUsername(username);
             if (user != null) {
-                userDAO.deleteByID(user.getId());
+                new Thread(() -> userDAO.deleteByID(user.getId())).start();
                 logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted user with ID: " + user.getId());
             }
         });
@@ -586,7 +606,7 @@ public class Controller {
                     Integer.parseInt(ethField.getText()),
                     configField.getText()
                 );
-                deviceDAO.save(device);
+                new Thread(() -> deviceDAO.save(device)).start();
                 logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new device to database with ID: " + device.getId());
             } catch (NumberFormatException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -650,7 +670,7 @@ public class Controller {
         result.ifPresent(idStr -> {
             try {
                 long id = Long.parseLong(idStr);
-                deviceDAO.deleteByID(id);
+                new Thread(() -> deviceDAO.deleteByID(id)).start();
                 logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted device with ID: " + id);
             } catch (NumberFormatException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
