@@ -179,7 +179,7 @@ public class Controller {
 
                 Alert qrAlert = new Alert(Alert.AlertType.INFORMATION);
                 qrAlert.setTitle("Set up 2FA");
-                qrAlert.setHeaderText("Scan this QR code with Google Authenticator");
+                qrAlert.setHeaderText("Scan this QR code with your TOTP authentication app");
                 qrAlert.getDialogPane().setContent(qrView);
                 qrAlert.showAndWait();
             }
@@ -381,7 +381,7 @@ public class Controller {
 
                     Alert qrAlert = new Alert(Alert.AlertType.INFORMATION);
                     qrAlert.setTitle("Set up 2FA");
-                    qrAlert.setHeaderText("Scan this QR code with Google Authenticator");
+                    qrAlert.setHeaderText("Scan this QR code with your TOTP authentication app");
                     qrAlert.getDialogPane().setContent(qrView);
                     qrAlert.showAndWait();
 
