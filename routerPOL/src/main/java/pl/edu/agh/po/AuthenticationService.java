@@ -34,16 +34,13 @@ public class AuthenticationService{
         if (userLookup.isBootstrap()) {
             return AuthStatus.BOOTSTRAP_REQUIRED;
         }
-
         if (userLookup.isForcePasswordChange()) {
             return AuthStatus.PASSWORD_CHANGE_REQUIRED;
         }
         if (userLookup.isForceTotpSetup()) {
             currentUser =  userLookup;
-            return AuthStatus.TOTP_REQUIRED; // wymusza konfigurację przy pierwszym logowaniu
+            return AuthStatus.TOTP_REQUIRED;
         }
-
-
         if (userLookup.isTotpEnabled()) {
             currentUser = userLookup;
             return AuthStatus.TOTP_REQUIRED;

@@ -3,10 +3,9 @@ package pl.edu.agh.po;
 import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -17,14 +16,15 @@ import javafx.scene.layout.GridPane;
 import javafx.geometry.Insets;
 import javafx.util.Pair;
 import javafx.embed.swing.SwingFXUtils;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 
 import java.awt.image.BufferedImage;
-import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Optional;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
@@ -36,9 +36,6 @@ import java.time.format.DateTimeFormatter;
 import javafx.scene.input.Clipboard;
 import org.apache.commons.codec.binary.Base32;
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 public class Controller {
 
@@ -142,7 +139,6 @@ public class Controller {
                 }
 
             } catch (Exception e) {
-                e.printStackTrace();
                 Alert error = new Alert(Alert.AlertType.ERROR);
                 error.setTitle("Error");
                 error.setHeaderText("TOTP verification failed!");
@@ -187,12 +183,12 @@ public class Controller {
                 qrAlert.getDialogPane().setContent(qrView);
                 qrAlert.showAndWait();
             }
-
             // 🔁 2. TYLKO pytamy o kod (może być retry)
             promptForTotpCode(user);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Alert error = new Alert(Alert.AlertType.ERROR);
+            error.setTitle("Error");
         }
     }
 
@@ -207,7 +203,6 @@ public class Controller {
     }
 
     private void showTotpPrompt(User user) {
-        //User user = authService.getCurrentUser();
 
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Two-Factor Authentication");
@@ -216,7 +211,6 @@ public class Controller {
 
         dialog.showAndWait().ifPresent(codeInput -> {
             try {
-                // Konwersja Base64 z bazy na SecretKey
                 String secret = user.getTotpSecret();
                 if (secret == null || secret.isBlank()) {
                     throw new IllegalStateException("TOTP secret is empty!");
@@ -249,7 +243,6 @@ public class Controller {
                     showTotpPrompt(user);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
                 Alert error = new Alert(Alert.AlertType.ERROR);
                 error.setTitle("Error");
                 error.setHeaderText("TOTP verification failed!");
@@ -300,7 +293,6 @@ public class Controller {
         });
     }
 
-
     @FXML
     private void handleLogin() {
         String username = usernameField.getText();
@@ -326,9 +318,9 @@ public class Controller {
             }
             case TOTP_REQUIRED -> {
                 if (user.isForceTotpSetup()) {
-                    handleFirstLoginTotp(user);   // 🔥 TU
+                    handleFirstLoginTotp(user);
                 } else {
-                    showTotpPrompt(user);             // 🔥 TU
+                    showTotpPrompt(user);
                 }
             }
             case INVALID_CREDENTIALS ->  {
@@ -364,7 +356,7 @@ public class Controller {
                     keyGen.init(160); // standard TOTP = 160 bitów
                     SecretKey secretKey = keyGen.generateKey();
 
-                    // zapis Base64 do bazy
+                    // zapis Base32 do bazy
                     Base32 base32 = new Base32();
                     String base32Secret = base32.encodeToString(secretKey.getEncoded()).replace("=", ""); // usuń padding
                     user.setTotpSecret(base32Secret);
@@ -397,7 +389,6 @@ public class Controller {
                     showTotpPrompt(user);
 
                 } catch (Exception e) {
-                    e.printStackTrace();
                     Alert error = new Alert(Alert.AlertType.ERROR);
                     error.setTitle("Error");
                     error.setHeaderText("Failed to setup bootstrap");
@@ -418,40 +409,34 @@ public class Controller {
         logger.info("app exited");
         Platform.exit();
     }
-
     private void hideAllPanels() {
         loginPanel.setVisible(false);
         adminPanel.setVisible(false);
         ceoPanel.setVisible(false);
         technicianPanel.setVisible(false);
     }
-
     private void showLoginPanel() {
         hideAllPanels();
         loginPanel.setVisible(true);
     }
-
     private void showAdminPanel() {
         hideAllPanels();
         adminPanel.setVisible(true);
         welcomeAdminLabel.setText("logged in as: " + authService.getCurrentUser().getUsername());
         adminRoleLabel.setText("user role: admin");
     }
-
     private void showCeoPanel() {
         hideAllPanels();
         ceoPanel.setVisible(true);
         welcomeCeoLabel.setText("logged in as: " + authService.getCurrentUser().getUsername());
         ceoRoleLabel.setText("user role: ceo");
     }
-
     private void showTechnicianPanel() {
         hideAllPanels();
         technicianPanel.setVisible(true);
         welcomeTechnicianLabel.setText("logged in as: " + authService.getCurrentUser().getUsername());
         technicianRoleLabel.setText("user role: technician");
     }
-
     @FXML
     private void handleAddUser() {
         Dialog<Pair<String, String>> dialog = new Dialog<>();
@@ -483,7 +468,7 @@ public class Controller {
         Optional<Pair<String, String>> result = dialog.showAndWait();
         result.ifPresent(credentials -> {
             User newUser = new User(credentials.getKey(), credentials.getValue(), roleChoiceBox.getValue());
-            newUser.setForceTotpSetup(true); // nowa kolumna w DB
+            newUser.setForceTotpSetup(true);
             newUser.setForcePasswordChange(true);
 
             userDAO.save(newUser);
@@ -491,7 +476,6 @@ public class Controller {
 
         });
     }
-
     @FXML
     private void handleBlockUser() {
         TextInputDialog dialog = new TextInputDialog();
@@ -612,7 +596,6 @@ public class Controller {
             }
         });
     }
-
     @FXML
     private void handleChangeConfiguration() {
         TextInputDialog idDialog = new TextInputDialog();
@@ -657,7 +640,6 @@ public class Controller {
             }
         });
     }
-
     @FXML
     private void handleDeleteDevice() {
         TextInputDialog dialog = new TextInputDialog();

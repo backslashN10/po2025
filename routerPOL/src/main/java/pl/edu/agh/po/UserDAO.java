@@ -1,6 +1,5 @@
 package pl.edu.agh.po;
 
-import javax.xml.transform.Result;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,32 +76,32 @@ public class UserDAO {
         }
     }
 
-    public User findByID(long ID) {
-        String sql = "SELECT * FROM users WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setLong(1, ID);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                User user = new User(
-                        rs.getLong("id"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        UserRole.valueOf(rs.getString("role"))
-                );
-
-                user.setBootstrap(rs.getInt("bootstrap") == 1);
-                user.setForcePasswordChange(rs.getInt("force_password_change") == 1);
-                user.setTotpSecret(rs.getString("totp_secret"));
-                user.setTotpEnabled(rs.getInt("totp_enabled") == 1);
-                user.setForceTotpSetup(rs.getInt("force_totp_setup") == 1);
-
-                return user;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+//    public User findByID(long ID) {
+//        String sql = "SELECT * FROM users WHERE id = ?";
+//        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+//            pstmt.setLong(1, ID);
+//            ResultSet rs = pstmt.executeQuery();
+//            if (rs.next()) {
+//                User user = new User(
+//                        rs.getLong("id"),
+//                        rs.getString("username"),
+//                        rs.getString("password"),
+//                        UserRole.valueOf(rs.getString("role"))
+//                );
+//
+//                user.setBootstrap(rs.getInt("bootstrap") == 1);
+//                user.setForcePasswordChange(rs.getInt("force_password_change") == 1);
+//                user.setTotpSecret(rs.getString("totp_secret"));
+//                user.setTotpEnabled(rs.getInt("totp_enabled") == 1);
+//                user.setForceTotpSetup(rs.getInt("force_totp_setup") == 1);
+//
+//                return user;
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
 
     public User findByUsername(String username) {
         String sql = "SELECT * FROM users WHERE username = ?";
@@ -131,32 +130,32 @@ public class UserDAO {
         return null;
     }
 
-    public User findByRole(UserRole role) {
-        String sql = "SELECT * FROM users WHERE role = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, role.name());
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                User user = new User(
-                        rs.getLong("id"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        UserRole.valueOf(rs.getString("role"))
-                );
-
-                user.setBootstrap(rs.getInt("bootstrap") == 1);
-                user.setForcePasswordChange(rs.getInt("force_password_change") == 1);
-                user.setTotpSecret(rs.getString("totp_secret"));
-                user.setTotpEnabled(rs.getInt("totp_enabled") == 1);
-                user.setForceTotpSetup(rs.getInt("force_totp_setup") == 1);
-
-                return user;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+//    public User findByRole(UserRole role) {
+//        String sql = "SELECT * FROM users WHERE role = ?";
+//        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+//            pstmt.setString(1, role.name());
+//            ResultSet rs = pstmt.executeQuery();
+//            if (rs.next()) {
+//                User user = new User(
+//                        rs.getLong("id"),
+//                        rs.getString("username"),
+//                        rs.getString("password"),
+//                        UserRole.valueOf(rs.getString("role"))
+//                );
+//
+//                user.setBootstrap(rs.getInt("bootstrap") == 1);
+//                user.setForcePasswordChange(rs.getInt("force_password_change") == 1);
+//                user.setTotpSecret(rs.getString("totp_secret"));
+//                user.setTotpEnabled(rs.getInt("totp_enabled") == 1);
+//                user.setForceTotpSetup(rs.getInt("force_totp_setup") == 1);
+//
+//                return user;
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
 
     public List<User> findALL() {
         String sql = "SELECT * FROM users";

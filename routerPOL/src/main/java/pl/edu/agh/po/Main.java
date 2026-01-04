@@ -14,14 +14,11 @@ public class Main extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
         Parent root = loader.load();
 
-        Controller controller = new Controller();
-
-
         primaryStage.setTitle("RouterPOL");
         primaryStage.setScene(new Scene(root, 700, 500));
         primaryStage.show();
     }
-
+    //i tak z mavena odpalamy
     public static void main(String[] args) {
         launch(args);
     }

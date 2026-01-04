@@ -57,32 +57,32 @@ public class DeviceDAO {
         }
         return null;
     }
-    public Device findByType(DeviceType type){
-        String sql = "SELECT * FROM devices WHERE type = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, type.name());
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next() == true){
-                return new Device(rs.getLong("id"), DeviceType.valueOf(rs.getString("type")), DeviceStatus.valueOf(rs.getString("status")), rs.getString("model"), rs.getString("hostname"), rs.getInt("num_eth_int"), rs.getString("configuration"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-    public Device findByStatus(DeviceStatus status){
-        String sql = "SELECT * FROM devices WHERE status = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, status.name());
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next() == true){
-                return new Device(rs.getLong("id"), DeviceType.valueOf(rs.getString("type")), DeviceStatus.valueOf(rs.getString("status")), rs.getString("model"), rs.getString("hostname"), rs.getInt("num_eth_int"), rs.getString("configuration"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+//    public Device findByType(DeviceType type){
+//        String sql = "SELECT * FROM devices WHERE type = ?";
+//        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+//            pstmt.setString(1, type.name());
+//            ResultSet rs = pstmt.executeQuery();
+//            if (rs.next() == true){
+//                return new Device(rs.getLong("id"), DeviceType.valueOf(rs.getString("type")), DeviceStatus.valueOf(rs.getString("status")), rs.getString("model"), rs.getString("hostname"), rs.getInt("num_eth_int"), rs.getString("configuration"));
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
+//    public Device findByStatus(DeviceStatus status){
+//        String sql = "SELECT * FROM devices WHERE status = ?";
+//        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+//            pstmt.setString(1, status.name());
+//            ResultSet rs = pstmt.executeQuery();
+//            if (rs.next() == true){
+//                return new Device(rs.getLong("id"), DeviceType.valueOf(rs.getString("type")), DeviceStatus.valueOf(rs.getString("status")), rs.getString("model"), rs.getString("hostname"), rs.getInt("num_eth_int"), rs.getString("configuration"));
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
     public List<Device> findAll(){
         String sql = "SELECT * FROM devices";
         List<Device> devices = new ArrayList<>();
