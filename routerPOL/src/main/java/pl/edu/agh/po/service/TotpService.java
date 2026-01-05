@@ -12,7 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 
-public class TotpService
+public class TotpService implements TotpManager
 {
     private final UserDAO userDAO = UserDAO.getInstance();
 

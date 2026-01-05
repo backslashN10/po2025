@@ -6,7 +6,7 @@ import pl.edu.agh.po.dao.UserDAO;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class ReportService {
+public class ReportService implements ReportManager{
     private static ReportService instance;
 
     private ReportService(){}

@@ -3,9 +3,10 @@ package pl.edu.agh.po.service;
 import pl.edu.agh.po.dao.DeviceDAO;
 import pl.edu.agh.po.model.Device;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class DeviceService {
+public class DeviceService implements DeviceManager{
 
     private final DeviceDAO deviceDAO = DeviceDAO.getInstance();
 
@@ -17,7 +18,7 @@ public class DeviceService {
         deviceDAO.deleteByID(id);
     }
 
-    public List<Device> getAllDevices() {
+    public ArrayList<Device> getAllDevices() {
         return deviceDAO.findAll();
     }
 

@@ -7,7 +7,7 @@ import pl.edu.agh.po.model.User;
 import java.sql.SQLException;
 import java.util.List;
 
-public class UserService {
+public class UserService implements UserManager{
 
     private final UserDAO userDAO = UserDAO.getInstance();
 
