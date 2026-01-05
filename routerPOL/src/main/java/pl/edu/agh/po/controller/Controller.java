@@ -100,6 +100,7 @@ public class Controller{
             }
         });
     }
+
     private void handleSuccessfulTotp(User user) {
         try {
             user.setForceTotpSetup(false);
@@ -137,7 +138,6 @@ public class Controller{
             qrAlert.getDialogPane().setContent(qrView);
             qrAlert.showAndWait();
 
-            // 🔁 2. TYLKO pytamy o kod (może być retry)
             promptForTotpCode(user);
 
         } catch (Exception e) {
@@ -146,12 +146,7 @@ public class Controller{
     }
 
     private void completeLogin(User user) {
-        Alert info = new Alert(Alert.AlertType.INFORMATION);
-        info.setTitle("Success");
-        info.setHeaderText("Logging in");
-        info.setContentText("Verification successful!");
-        info.showAndWait();
-
+        showInfo("Success","Logging in","Verification successful!");
         showPanelForRole(user);
     }
 
@@ -164,25 +159,13 @@ public class Controller{
 
         dialog.showAndWait().ifPresent(codeInput -> {
             try {
-//                String secret = user.getTotpSecret();
                 boolean isValid = totpService.isTotpCodeValid(user, codeInput);
-//                if (secret == null || secret.isBlank()) {
-//                    throw new IllegalStateException("TOTP secret is empty!");
-//                }
                 if (isValid) {
-                    Alert info = new Alert(Alert.AlertType.INFORMATION);
-                    info.setTitle("Success");
-                    info.setHeaderText("TOTP verified! Logging in...");
-                    info.showAndWait();
-
+                    showInfo("Success","TOTP verified! Logging in...","");
                     showPanelForRole(user);
 
                 } else {
-                    Alert error = new Alert(Alert.AlertType.ERROR);
-                    error.setTitle("Error");
-                    error.setHeaderText("Invalid TOTP code!");
-                    error.showAndWait();
-
+                    showError("Invalid TOTP code");
                     showTotpPrompt(user); // retry
                 }
             } catch (Exception e) {
@@ -509,11 +492,7 @@ public class Controller{
             usersDB.append("-------------------\n");
         }
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Baza użytkowników");
-        alert.setHeaderText("Lista użytkowników");
-        alert.setContentText(usersDB.toString());
-        alert.showAndWait();
+        showInfo("Baza użytkowników","Lista użytkowników",usersDB.toString());
         logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") looked at database");
     }
     private void showInfo(String title, String header, String content) {
@@ -612,9 +591,7 @@ public class Controller{
                 new Thread(() -> deviceService.addDevice(device)).start();
                 logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new device to database with ID: " + device.getId());
             } catch (NumberFormatException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setContentText("Invalid number format");
-                alert.showAndWait();
+                showError("Invalid number format");
                 logger.warning("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") tried to add new device to database but insert invalid number format");
             }
         });
@@ -655,9 +632,7 @@ public class Controller{
                     });
                 }
             } catch (NumberFormatException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setContentText("Invalid ID");
-                alert.showAndWait();
+                showError("Invalid ID");
                 logger.warning("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") tried to change configuration of device but provided invalid ID");
             }
         });
@@ -700,10 +675,6 @@ public class Controller{
             devices.append("-------------------\n");
         }
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Baza urządzeń");
-        alert.setHeaderText("Lista urządzeń");
-        alert.setContentText(devices.toString());
-        alert.showAndWait();
+        showInfo("Baza urządzeń","Lista urządzeń",devices.toString());
     }
 }
