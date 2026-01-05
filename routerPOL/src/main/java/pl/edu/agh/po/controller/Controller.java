@@ -117,27 +117,9 @@ public class Controller{
     private void handleFirstLoginTotp(User user) {
         try {
 
+            totpService.setupTotp(user);
             String otpAuthUrl = totpService.generateOtpAuthUrl(user);
-
-
-            BitMatrix matrix = null;
-            try {
-                matrix = new MultiFormatWriter().encode(otpAuthUrl, BarcodeFormat.QR_CODE, 200, 200);
-            } catch (WriterException ex) {
-                showError("Error,Failed to encode otp auth url!");
-            }
-
-            Image fxImage = SwingFXUtils.toFXImage(
-                    MatrixToImageWriter.toBufferedImage(matrix), null);
-
-            ImageView qrView = new ImageView(fxImage);
-
-            Alert qrAlert = new Alert(Alert.AlertType.INFORMATION);
-            qrAlert.setTitle("Set up 2FA");
-            qrAlert.setHeaderText("Scan this QR code with your TOTP authentication app");
-            qrAlert.getDialogPane().setContent(qrView);
-            qrAlert.showAndWait();
-
+            showQrDialog(otpAuthUrl);
             promptForTotpCode(user);
 
         } catch (Exception e) {
