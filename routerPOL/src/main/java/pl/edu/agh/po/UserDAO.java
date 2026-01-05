@@ -1,5 +1,7 @@
 package pl.edu.agh.po;
 
+import javafx.scene.control.Alert;
+
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -192,7 +194,11 @@ public class UserDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            if (e.getMessage().contains("UNIQUE")) {
+                throw new UserAlreadyExistsException("User already exists", e);
+            }
+            throw new RuntimeException(e);
+
         }
     }
 

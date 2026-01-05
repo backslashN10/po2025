@@ -37,7 +37,7 @@ import javafx.scene.input.Clipboard;
 import org.apache.commons.codec.binary.Base32;
 
 
-public class Controller {
+public class Controller extends Thread {
 
     @FXML private VBox loginPanel;
     @FXML private TextField usernameField;
@@ -52,6 +52,7 @@ public class Controller {
     @FXML private VBox technicianPanel;
     @FXML private Label welcomeTechnicianLabel;
     @FXML private Label technicianRoleLabel;
+    @FXML private Button loginButton;
 
     private final AuthenticationService authService = AuthenticationService.getInstance();
     private final UserDAO userDAO = UserDAO.getInstance();
@@ -297,37 +298,57 @@ public class Controller {
     private void handleLogin() {
         String username = usernameField.getText();
         String password = passwordField.getText();
-        AuthenticationService.AuthStatus status = authService.login(username, password);
-        User user = authService.getCurrentUser();
 
         usernameField.clear();
         passwordField.clear();
-        switch(status) {
-            case SUCCESS -> {
-                    loginMessageLabel.setText("");
-                    logger.info("user: " + username + " (" + user.getRole() + ") logged in");
-                    showPanelForRole(user);
-            }
-            case BOOTSTRAP_REQUIRED -> {
-                loginMessageLabel.setText("Bootstrap admin: set password & enable 2FA");
-                showBootstrapSetup();
-            }
-            case PASSWORD_CHANGE_REQUIRED ->  {
-                loginMessageLabel.setText("Password change required");
-                showPasswordChangeDialog(user,false);
-            }
-            case TOTP_REQUIRED -> {
-                if (user.isForceTotpSetup()) {
-                    handleFirstLoginTotp(user);
-                } else {
-                    showTotpPrompt(user);
+
+        loginButton.setDisable(true);
+        loginMessageLabel.setText("Logging in...");
+
+        new Thread(() -> {
+            AuthenticationService.AuthStatus status =
+                    authService.login(username, password);
+            User user = authService.getCurrentUser();
+
+            Platform.runLater(() -> {
+                // GUI MUSI być na FX thread
+
+                loginButton.setDisable(false);
+
+                switch (status) {
+                    case SUCCESS -> {
+                        loginMessageLabel.setText("");
+                        logger.info("user: " + username + " (" + user.getRole() + ") logged in");
+                        showPanelForRole(user);
+                    }
+
+                    case BOOTSTRAP_REQUIRED -> {
+                        loginMessageLabel.setText("Bootstrap admin: set password & enable 2FA");
+                        showBootstrapSetup();
+                    }
+
+                    case PASSWORD_CHANGE_REQUIRED -> {
+                        loginMessageLabel.setText("Password change required");
+                        showPasswordChangeDialog(user, false);
+                    }
+
+                    case TOTP_REQUIRED -> {
+                        loginMessageLabel.setText("");
+                        if (user.isForceTotpSetup()) {
+                            handleFirstLoginTotp(user);
+                        } else {
+                            showTotpPrompt(user);
+                        }
+                    }
+
+                    case INVALID_CREDENTIALS -> {
+                        loginMessageLabel.setText("Invalid credentials!");
+                    }
                 }
-            }
-            case INVALID_CREDENTIALS ->  {
-                loginMessageLabel.setText("Invalid credentials!");
-                passwordField.clear();}
-            }
-        }
+            });
+        }).start();
+    }
+
     @FXML
     private void handleLogout() {
         logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") logged out");
@@ -442,22 +463,27 @@ public class Controller {
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Dodaj użytkownika");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
+
         TextField usernameField = new TextField();
         PasswordField passwordField = new PasswordField();
         ChoiceBox<UserRole> roleChoiceBox = new ChoiceBox<>();
         roleChoiceBox.getItems().addAll(UserRole.ADMIN, UserRole.CEO, UserRole.TECHNICIAN);
         roleChoiceBox.setValue(UserRole.TECHNICIAN);
+
         grid.add(new Label("Username:"), 0, 0);
         grid.add(usernameField, 1, 0);
         grid.add(new Label("Password:"), 0, 1);
         grid.add(passwordField, 1, 1);
         grid.add(new Label("Role:"), 0, 2);
         grid.add(roleChoiceBox, 1, 2);
+
         dialog.getDialogPane().setContent(grid);
+
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == ButtonType.OK) {
                 return new Pair<>(usernameField.getText(), passwordField.getText());
@@ -467,15 +493,43 @@ public class Controller {
 
         Optional<Pair<String, String>> result = dialog.showAndWait();
         result.ifPresent(credentials -> {
-            User newUser = new User(credentials.getKey(), credentials.getValue(), roleChoiceBox.getValue());
+
+            User newUser = new User(
+                    credentials.getKey(),
+                    credentials.getValue(),
+                    roleChoiceBox.getValue()
+            );
+
             newUser.setForceTotpSetup(true);
             newUser.setForcePasswordChange(true);
 
-            userDAO.save(newUser);
-            logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new user to database with ID: " + newUser.getId());
+            new Thread(() -> {
+                try {
+                    userDAO.save(newUser);
 
+                    Platform.runLater(() -> {
+                        logger.info("User added: " + newUser.getUsername());
+                    });
+
+                } catch (UserAlreadyExistsException e) {
+
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Błąd");
+                        alert.setHeaderText("Nie można dodać użytkownika");
+                        alert.setContentText(
+                                "Użytkownik o takiej nazwie już istnieje.\nWybierz inną nazwę."
+                        );
+                        alert.showAndWait();
+                    });
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
         });
     }
+
     @FXML
     private void handleBlockUser() {
         TextInputDialog dialog = new TextInputDialog();
@@ -486,7 +540,7 @@ public class Controller {
         result.ifPresent(username -> {
             User user = userDAO.findByUsername(username);
             if (user != null) {
-                userDAO.deleteByID(user.getId());
+                new Thread(() -> userDAO.deleteByID(user.getId())).start();
                 logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted user with ID: " + user.getId());
             }
         });
@@ -586,7 +640,7 @@ public class Controller {
                     Integer.parseInt(ethField.getText()),
                     configField.getText()
                 );
-                deviceDAO.save(device);
+                new Thread(() -> deviceDAO.save(device)).start();
                 logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new device to database with ID: " + device.getId());
             } catch (NumberFormatException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -650,7 +704,7 @@ public class Controller {
         result.ifPresent(idStr -> {
             try {
                 long id = Long.parseLong(idStr);
-                deviceDAO.deleteByID(id);
+                new Thread(() -> deviceDAO.deleteByID(id)).start();
                 logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted device with ID: " + id);
             } catch (NumberFormatException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
