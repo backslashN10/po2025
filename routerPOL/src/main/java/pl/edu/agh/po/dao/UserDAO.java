@@ -1,10 +1,11 @@
-package pl.edu.agh.po;
+package pl.edu.agh.po.dao;
 
-import javafx.scene.control.Alert;
+import pl.edu.agh.po.utilities.PasswordEncryption;
+import pl.edu.agh.po.model.User;
+import pl.edu.agh.po.model.UserRole;
 
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.List;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -78,33 +79,6 @@ public class UserDAO {
         }
     }
 
-//    public User findByID(long ID) {
-//        String sql = "SELECT * FROM users WHERE id = ?";
-//        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-//            pstmt.setLong(1, ID);
-//            ResultSet rs = pstmt.executeQuery();
-//            if (rs.next()) {
-//                User user = new User(
-//                        rs.getLong("id"),
-//                        rs.getString("username"),
-//                        rs.getString("password"),
-//                        UserRole.valueOf(rs.getString("role"))
-//                );
-//
-//                user.setBootstrap(rs.getInt("bootstrap") == 1);
-//                user.setForcePasswordChange(rs.getInt("force_password_change") == 1);
-//                user.setTotpSecret(rs.getString("totp_secret"));
-//                user.setTotpEnabled(rs.getInt("totp_enabled") == 1);
-//                user.setForceTotpSetup(rs.getInt("force_totp_setup") == 1);
-//
-//                return user;
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
-
     public User findByUsername(String username) {
         String sql = "SELECT * FROM users WHERE username = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -132,36 +106,9 @@ public class UserDAO {
         return null;
     }
 
-//    public User findByRole(UserRole role) {
-//        String sql = "SELECT * FROM users WHERE role = ?";
-//        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-//            pstmt.setString(1, role.name());
-//            ResultSet rs = pstmt.executeQuery();
-//            if (rs.next()) {
-//                User user = new User(
-//                        rs.getLong("id"),
-//                        rs.getString("username"),
-//                        rs.getString("password"),
-//                        UserRole.valueOf(rs.getString("role"))
-//                );
-//
-//                user.setBootstrap(rs.getInt("bootstrap") == 1);
-//                user.setForcePasswordChange(rs.getInt("force_password_change") == 1);
-//                user.setTotpSecret(rs.getString("totp_secret"));
-//                user.setTotpEnabled(rs.getInt("totp_enabled") == 1);
-//                user.setForceTotpSetup(rs.getInt("force_totp_setup") == 1);
-//
-//                return user;
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
-
-    public List<User> findALL() {
+    public ArrayList<User> findALL() {
         String sql = "SELECT * FROM users";
-        List<User> users = new ArrayList<>();
+        ArrayList<User> users = new ArrayList<>();
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next() == true) {
@@ -187,18 +134,13 @@ public class UserDAO {
 
             pstmt.executeUpdate();
 
-            // Pobranie wygenerowanego ID
             try (ResultSet rs = pstmt.getGeneratedKeys()) {
                 if (rs.next()) {
                     user.setId(rs.getLong(1));
                 }
             }
         } catch (SQLException e) {
-            if (e.getMessage().contains("UNIQUE")) {
-                throw new UserAlreadyExistsException("User already exists", e);
-            }
             throw new RuntimeException(e);
-
         }
     }
 
@@ -207,12 +149,12 @@ public class UserDAO {
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, ID);
             pstmt.execute();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public void updateData(User user) throws SQLException {
+    public void updateData(User user) {
         String sql = "UPDATE users SET username = ?, password = ?, role = ?, bootstrap = ?, force_password_change = ?, totp_secret = ?, totp_enabled = ?,force_totp_setup = ? WHERE id = ?";
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                 pstmt.setString(1, user.getUsername());
@@ -226,8 +168,10 @@ public class UserDAO {
                 pstmt.setLong(9, user.getId());
 
                 pstmt.executeUpdate();
-            } catch (Exception e) {
-                e.printStackTrace();
+
+            }catch(SQLException e)
+            {
+                throw new RuntimeException(e);
             }
         }
     }

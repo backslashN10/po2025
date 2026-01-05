@@ -1,16 +1,19 @@
-package pl.edu.agh.po;
+package pl.edu.agh.po.service;
+
+import pl.edu.agh.po.dao.DeviceDAO;
+import pl.edu.agh.po.dao.UserDAO;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class BusinessManager {
-    private static BusinessManager instance;
+public class ReportService implements ReportManager{
+    private static ReportService instance;
 
-    private BusinessManager(){}
+    private ReportService(){}
 
-    public static BusinessManager getInstance(){
+    public static ReportService getInstance(){
         if (instance == null){
-            instance = new BusinessManager();
+            instance = new ReportService();
         }
         return instance;
     }

@@ -1,4 +1,10 @@
-package pl.edu.agh.po;
+package pl.edu.agh.po.service;
+
+import pl.edu.agh.po.utilities.PasswordEncryption;
+import pl.edu.agh.po.dao.UserDAO;
+import pl.edu.agh.po.model.User;
+import pl.edu.agh.po.model.AuthStatus;
+
 
 public class AuthenticationService{
     private static AuthenticationService instance;
@@ -15,21 +21,16 @@ public class AuthenticationService{
         }
         return instance;
     }
-    public enum AuthStatus {
-        SUCCESS,
-        BOOTSTRAP_REQUIRED,
-        PASSWORD_CHANGE_REQUIRED,
-        TOTP_REQUIRED,
-        INVALID_CREDENTIALS
-    }
+
 
     public AuthStatus login(String username, String password) {
         User userLookup = userDAO.findByUsername(username);
+        currentUser = userLookup;
+
 
         if (userLookup == null || !PasswordEncryption.verify(password, userLookup.getPassword())) {
             return AuthStatus.INVALID_CREDENTIALS;
         }
-        currentUser = userLookup;
 
         if (userLookup.isBootstrap()) {
             return AuthStatus.BOOTSTRAP_REQUIRED;
@@ -38,11 +39,9 @@ public class AuthenticationService{
             return AuthStatus.PASSWORD_CHANGE_REQUIRED;
         }
         if (userLookup.isForceTotpSetup()) {
-            currentUser =  userLookup;
             return AuthStatus.TOTP_REQUIRED;
         }
         if (userLookup.isTotpEnabled()) {
-            currentUser = userLookup;
             return AuthStatus.TOTP_REQUIRED;
         }
         return AuthStatus.SUCCESS;

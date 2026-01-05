@@ -1,4 +1,4 @@
-package pl.edu.agh.po;
+package pl.edu.agh.po.utilities;
 import org.mindrot.jbcrypt.BCrypt;
 
 

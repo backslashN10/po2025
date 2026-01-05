@@ -1,8 +1,8 @@
-package pl.edu.agh.po;
+package pl.edu.agh.po.controller;
 
-import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 
@@ -16,15 +16,8 @@ import javafx.scene.layout.GridPane;
 import javafx.geometry.Insets;
 import javafx.util.Pair;
 import javafx.embed.swing.SwingFXUtils;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-
 
 import java.awt.image.BufferedImage;
-import java.sql.SQLException;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
@@ -34,10 +27,13 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import javafx.scene.input.Clipboard;
-import org.apache.commons.codec.binary.Base32;
+import pl.edu.agh.po.exceptions.UserAlreadyExistsException;
+import pl.edu.agh.po.model.*;
+import pl.edu.agh.po.service.*;
+import pl.edu.agh.po.utilities.PasswordEncryption;
 
 
-public class Controller extends Thread {
+public class Controller{
 
     @FXML private VBox loginPanel;
     @FXML private TextField usernameField;
@@ -54,10 +50,11 @@ public class Controller extends Thread {
     @FXML private Label technicianRoleLabel;
     @FXML private Button loginButton;
 
+    private final DeviceService deviceService = new DeviceService();
     private final AuthenticationService authService = AuthenticationService.getInstance();
-    private final UserDAO userDAO = UserDAO.getInstance();
-    private final DeviceDAO deviceDAO = DeviceDAO.getInstance();
-    private final BusinessManager businessManager = BusinessManager.getInstance();
+    private final UserService userService = new UserService();
+    private final TotpService totpService = new TotpService();
+    private final ReportService reportService = ReportService.getInstance();
     private static final Logger logger = Logger.getLogger(Controller.class.getName());
 
     @FXML
@@ -86,6 +83,7 @@ public class Controller extends Thread {
                     "Unknown role: " + user.getRole());
         }
     }
+
     private void promptForTotpCode(User user) {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Two-Factor Authentication");
@@ -93,113 +91,44 @@ public class Controller extends Thread {
         dialog.setContentText("Code:");
 
         dialog.showAndWait().ifPresent(codeInput -> {
-            try {
-                // Pobranie sekretu z bazy
-                String secret = user.getTotpSecret();
-                if (secret == null || secret.isBlank()) {
-                    throw new IllegalStateException("TOTP secret is empty!");
-                }
-
-                byte[] keyBytes = new Base32().decode(secret);
-                SecretKey key = new SecretKeySpec(keyBytes, "HmacSHA1");
-
-                // Generator TOTP
-                TimeBasedOneTimePasswordGenerator totp =
-                        new TimeBasedOneTimePasswordGenerator(Duration.ofSeconds(30));
-
-                // Weryfikacja ±1 krokiem (±30 sekund)
-                boolean valid = false;
-                Instant now = Instant.now();
-                for (int i = -1; i <= 1; i++) {
-                    Instant t = now.plusSeconds(i * 30);
-                    String expected = String.format("%06d", totp.generateOneTimePassword(key, t));
-                    if (expected.equals(codeInput)) {
-                        valid = true;
-                        break;
-                    }
-                }
-
-                if (valid) {
-                    // Poprawny kod: zapisujemy stan użytkownika
-                    user.setForceTotpSetup(false);
-                    user.setTotpEnabled(true);
-                    userDAO.updateData(user);
-
-                    // Logowanie i pokazanie panelu
-                    completeLogin(user);
-                    showPanelForRole(user);
-
-                } else {
-                    // Błędny kod: retry
-                    Alert error = new Alert(Alert.AlertType.ERROR);
-                    error.setTitle("Invalid code");
-                    error.setHeaderText("The TOTP code is incorrect. Please try again.");
-                    error.showAndWait();
-
-                    promptForTotpCode(user); // wywołanie rekursywne
-                }
-
-            } catch (Exception e) {
-                Alert error = new Alert(Alert.AlertType.ERROR);
-                error.setTitle("Error");
-                error.setHeaderText("TOTP verification failed!");
-                error.showAndWait();
+            if (totpService.isTotpCodeValid(user, codeInput)) {
+                handleSuccessfulTotp(user);
+            } else {
+                showError("Invalid code, The TOTP code is incorrect. Please try again.");
+                // retry
+                promptForTotpCode(user);
             }
         });
     }
+
+    private void handleSuccessfulTotp(User user) {
+        try {
+            user.setForceTotpSetup(false);
+            user.setTotpEnabled(true);
+            userService.update(user);
+
+            completeLogin(user);
+            showPanelForRole(user);
+
+        } catch (Exception e) {
+            showError("Error,Failed to update user after TOTP verification!");
+        }
+    }
     private void handleFirstLoginTotp(User user) {
         try {
-            // Sprawdzenie, czy użytkownik musi skonfigurować TOTP
-            if (!user.isForceTotpSetup()) {
-                return; // nic nie robimy, jeśli nie wymuszone
-            }
 
-            if (user.getTotpSecret() == null || user.getTotpSecret().isBlank()) {
-                KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA1");
-                keyGen.init(160);
-                SecretKey secretKey = keyGen.generateKey();
-
-                String base32Secret = new Base32().encodeToString(secretKey.getEncoded());
-
-                user.setTotpSecret(base32Secret);
-                user.setTotpEnabled(false);
-                userDAO.updateData(user);
-
-                String otpAuthUrl =
-                        "otpauth://totp/YourApp:" + user.getUsername() +
-                                "?secret=" + base32Secret +
-                                "&issuer=YourApp&digits=6";
-
-                BitMatrix matrix = new MultiFormatWriter()
-                        .encode(otpAuthUrl, BarcodeFormat.QR_CODE, 200, 200);
-
-                Image fxImage = SwingFXUtils.toFXImage(
-                        MatrixToImageWriter.toBufferedImage(matrix), null);
-
-                ImageView qrView = new ImageView(fxImage);
-
-                Alert qrAlert = new Alert(Alert.AlertType.INFORMATION);
-                qrAlert.setTitle("Set up 2FA");
-                qrAlert.setHeaderText("Scan this QR code with your TOTP authentication app");
-                qrAlert.getDialogPane().setContent(qrView);
-                qrAlert.showAndWait();
-            }
-            // 🔁 2. TYLKO pytamy o kod (może być retry)
+            totpService.setupTotp(user);
+            String otpAuthUrl = totpService.generateOtpAuthUrl(user);
+            showQrDialog(otpAuthUrl);
             promptForTotpCode(user);
 
         } catch (Exception e) {
-            Alert error = new Alert(Alert.AlertType.ERROR);
-            error.setTitle("Error");
+            showError("Failed to set up TOTP authentication!");
         }
     }
 
     private void completeLogin(User user) {
-        Alert info = new Alert(Alert.AlertType.INFORMATION);
-        info.setTitle("Success");
-        info.setHeaderText("Logging in");
-        info.setContentText("Verification successful!");
-        info.showAndWait();
-
+        showInfo("Success","Logging in","Verification successful!");
         showPanelForRole(user);
     }
 
@@ -212,42 +141,17 @@ public class Controller extends Thread {
 
         dialog.showAndWait().ifPresent(codeInput -> {
             try {
-                String secret = user.getTotpSecret();
-                if (secret == null || secret.isBlank()) {
-                    throw new IllegalStateException("TOTP secret is empty!");
-                }
-                byte[] keyBytes = new Base32().decode(secret);
-                SecretKey key = new SecretKeySpec(keyBytes, "HmacSHA1");
-
-                // Tworzymy generator TOTP
-                TimeBasedOneTimePasswordGenerator totp = new TimeBasedOneTimePasswordGenerator(Duration.ofSeconds(30));
-
-                // Generujemy aktualny kod TOTP
-                String expectedCode = String.format("%06d",
-                        totp.generateOneTimePassword(key, java.time.Instant.now()));
-
-                if (expectedCode.equals(codeInput)) {
-                    Alert info = new Alert(Alert.AlertType.INFORMATION);
-                    info.setTitle("Success");
-                    info.setHeaderText("TOTP verified! Logging in...");
-                    info.showAndWait();
-
-                    // Po poprawnym kodzie pokazujemy panel wg roli
+                boolean isValid = totpService.isTotpCodeValid(user, codeInput);
+                if (isValid) {
+                    showInfo("Success","TOTP verified! Logging in...","");
                     showPanelForRole(user);
-                } else {
-                    Alert error = new Alert(Alert.AlertType.ERROR);
-                    error.setTitle("Error");
-                    error.setHeaderText("Invalid TOTP code!");
-                    error.showAndWait();
 
-                    // Pozwalamy użytkownikowi spróbować ponownie
-                    showTotpPrompt(user);
+                } else {
+                    showError("Invalid TOTP code");
+                    showTotpPrompt(user); // retry
                 }
             } catch (Exception e) {
-                Alert error = new Alert(Alert.AlertType.ERROR);
-                error.setTitle("Error");
-                error.setHeaderText("TOTP verification failed!");
-                error.showAndWait();
+                showError("TOTP verification failed!"); // metoda do Alert ERROR
             }
         });
     }
@@ -274,25 +178,31 @@ public class Controller extends Thread {
         });
 
         dialog.showAndWait().ifPresent(newPassword -> {
-            if (!newPassword.isBlank()) {
+            if (newPassword == null || newPassword.isBlank()) {
+                showWarning("Password can't be empty!");
+                return;
+            }
+
+            try {
+                // 1. Ustawienie nowego hasła i wyłączenie wymuszenia zmiany
                 user.setPassword(PasswordEncryption.hash(newPassword));
                 user.setForcePasswordChange(false);
-                try {
-                    userDAO.updateData(user);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
+                userService.update(user);
 
+                // 2. Po zmianie hasła konfiguracja TOTP lub logowanie
                 if (afterBootstrap || user.isForceTotpSetup()) {
-                    // po zmianie hasła konfigurujemy TOTP
-                    handleFirstLoginTotp(user);
+                    handleFirstLoginTotp(user); // tu kontroler wywołuje serwis TotpService
                 } else {
                     completeLogin(user);
                     showPanelForRole(user);
                 }
+
+            } catch (Exception e) {
+                showError("Failed to update password: " + e.getMessage());
             }
         });
     }
+
 
     @FXML
     private void handleLogin() {
@@ -306,12 +216,11 @@ public class Controller extends Thread {
         loginMessageLabel.setText("Logging in...");
 
         new Thread(() -> {
-            AuthenticationService.AuthStatus status =
+            AuthStatus status =
                     authService.login(username, password);
             User user = authService.getCurrentUser();
 
             Platform.runLater(() -> {
-                // GUI MUSI być na FX thread
 
                 loginButton.setDisable(false);
 
@@ -355,6 +264,41 @@ public class Controller extends Thread {
         authService.logout();
         showLoginPanel();
     }
+    private void showQrDialog(String otpAuthUrl) {
+        try {
+            BitMatrix matrix = new MultiFormatWriter().encode(otpAuthUrl, BarcodeFormat.QR_CODE, 200, 200);
+            BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(matrix);
+            Image fxImage = SwingFXUtils.toFXImage(qrImage, null);
+
+            ImageView qrView = new ImageView(fxImage);
+            qrView.setFitWidth(200);
+            qrView.setFitHeight(200);
+
+            Alert qrAlert = new Alert(Alert.AlertType.INFORMATION);
+            qrAlert.setTitle("Set up 2FA");
+            qrAlert.setHeaderText("Scan this QR code with your TOTP authentication app");
+            qrAlert.getDialogPane().setContent(qrView);
+            qrAlert.showAndWait();
+        } catch (Exception e) {
+            showError("Failed to generate QR code");
+        }
+    }
+
+    // Pokazuje alert z błędem
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(message);
+        alert.showAndWait();
+    }
+
+    // Pokazuje alert z ostrzeżeniem
+    private void showWarning(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Warning");
+        alert.setHeaderText(message);
+        alert.showAndWait();
+    }
     private void showBootstrapSetup() {
         User user = authService.getCurrentUser();
 
@@ -368,59 +312,20 @@ public class Controller extends Thread {
             if (!newPassword.isBlank()) {
                 try {
                     // Zapisz nowe hasło
-                    user.setPassword(newPassword);
-                    user.setForcePasswordChange(false);
-                    user.setBootstrap(false);
+                    User updatedUser = totpService.setupBootstrap(user, newPassword);
+                    String otpUrl = totpService.generateOtpAuthUrl(updatedUser);
 
-                    // Generowanie sekretu TOTP
-                    KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA1");
-                    keyGen.init(160); // standard TOTP = 160 bitów
-                    SecretKey secretKey = keyGen.generateKey();
 
-                    // zapis Base32 do bazy
-                    Base32 base32 = new Base32();
-                    String base32Secret = base32.encodeToString(secretKey.getEncoded()).replace("=", ""); // usuń padding
-                    user.setTotpSecret(base32Secret);
-                    user.setTotpEnabled(true);
-                    userDAO.updateData(user);
+                    showQrDialog(otpUrl);
 
-                    // Generowanie URL do Google Authenticator
-                    // Format: otpauth://totp/<issuer>:<account>?secret=<secret>&issuer=<issuer>&digits=6
-                    String otpAuthUrl = "otpauth://totp/YourApp:" + user.getUsername() +
-                            "?secret=" + base32Secret +
-                            "&issuer=YourApp&digits=6";
-
-                    // Tworzymy QR code
-                    BitMatrix matrix = new MultiFormatWriter().encode(otpAuthUrl, BarcodeFormat.QR_CODE, 200, 200);
-                    BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(matrix);
-                    Image fxImage = SwingFXUtils.toFXImage(qrImage, null);
-
-                    // Pokazanie QR code w dialogu
-                    ImageView qrView = new ImageView(fxImage);
-                    qrView.setFitWidth(200);
-                    qrView.setFitHeight(200);
-
-                    Alert qrAlert = new Alert(Alert.AlertType.INFORMATION);
-                    qrAlert.setTitle("Set up 2FA");
-                    qrAlert.setHeaderText("Scan this QR code with your TOTP authentication app");
-                    qrAlert.getDialogPane().setContent(qrView);
-                    qrAlert.showAndWait();
-
-                    // Po skonfigurowaniu TOTP od razu prompt do kodu
-                    showTotpPrompt(user);
+                    showTotpPrompt(updatedUser);
 
                 } catch (Exception e) {
-                    Alert error = new Alert(Alert.AlertType.ERROR);
-                    error.setTitle("Error");
-                    error.setHeaderText("Failed to setup bootstrap");
-                    error.showAndWait();
+                    showError("Failed to setup bootstrap admin");
                 }
 
             } else {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Warning");
-                alert.setHeaderText("Password cannot be empty!");
-                alert.showAndWait();
+                showWarning("Password can't be empty/Please enter a new password");
             }
         });
     }
@@ -458,8 +363,7 @@ public class Controller extends Thread {
         welcomeTechnicianLabel.setText("logged in as: " + authService.getCurrentUser().getUsername());
         technicianRoleLabel.setText("user role: technician");
     }
-    @FXML
-    private void handleAddUser() {
+    private User createUserFromDialog() {
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Dodaj użytkownika");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -492,20 +396,31 @@ public class Controller extends Thread {
         });
 
         Optional<Pair<String, String>> result = dialog.showAndWait();
-        result.ifPresent(credentials -> {
-
-            User newUser = new User(
-                    credentials.getKey(),
-                    credentials.getValue(),
-                    roleChoiceBox.getValue()
-            );
-
+        if (result.isPresent()) {
+            String username = result.get().getKey();
+            String password = result.get().getValue();
+            if (username.isBlank() || password.isBlank()) {
+                showWarning("Niepoprawne dane, Username i hasło nie mogą być puste!");
+                return null;
+            }
+            User newUser = new User(username, password, roleChoiceBox.getValue());
             newUser.setForceTotpSetup(true);
             newUser.setForcePasswordChange(true);
+            return newUser;
+        }
+        return null; // użytkownik anulował dialog
+    }
+    @FXML
+    private void handleAddUser() {
+        User newUser = createUserFromDialog();
+        if(newUser == null)
+        {
+            return;
+        }
 
             new Thread(() -> {
                 try {
-                    userDAO.save(newUser);
+                    userService.createUser(newUser);
 
                     Platform.runLater(() -> {
                         logger.info("User added: " + newUser.getUsername());
@@ -527,21 +442,24 @@ public class Controller extends Thread {
                     e.printStackTrace();
                 }
             }).start();
-        });
-    }
+        };
 
     @FXML
     private void handleBlockUser() {
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Usuń użytkownika");
+        dialog.setTitle("Delete user");
         dialog.setContentText("Username:");
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(username -> {
-            User user = userDAO.findByUsername(username);
-            if (user != null) {
-                new Thread(() -> userDAO.deleteByID(user.getId())).start();
-                logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted user with ID: " + user.getId());
+            try {
+                userService.deleteUserByUsername(username);
+                logger.info("User: " + authService.getCurrentUser().getUsername()
+                        + " (" + authService.getCurrentUser().getRole() + ") deleted user: " + username);
+                showInfo("Success","User deleted","User " + username + " was successfully deleted.");
+
+            } catch (RuntimeException e) {
+                showError("Failed to delete user");
             }
         });
     }
@@ -549,36 +467,48 @@ public class Controller extends Thread {
     @FXML
     private void handleShowDatabase() {
         StringBuilder usersDB = new StringBuilder();
-        for (User user : userDAO.findALL()) {
+        for (User user : userService.getAllUsers()) {
             usersDB.append("ID: ").append(user.getId()).append("\n");
             usersDB.append("Username: ").append(user.getUsername()).append("\n");
             usersDB.append("Role: ").append(user.getRole()).append("\n");
             usersDB.append("-------------------\n");
         }
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Baza użytkowników");
-        alert.setHeaderText("Lista użytkowników");
-        alert.setContentText(usersDB.toString());
-        alert.showAndWait();
+        showInfo("Baza użytkowników","Lista użytkowników",usersDB.toString());
         logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") looked at database");
+    }
+    private void showInfo(String title, String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+    @FXML
+    private void handleCreateReport() {
+        String filename = createReportFromService();
+        if (filename != null) {
+            showInfo("Raport", "Raport został wygenerowany", "Zapisano do pliku: " + filename);
+            logger.info("user: " + authService.getCurrentUser().getUsername() +
+                    " (" + authService.getCurrentUser().getRole() + ") created new report");
+        }
     }
 
     @FXML
-    private void handleCreateReport() {
-        String report = businessManager.generateFullRaport();
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
-        String filename = "raport_" + timestamp + ".md";
-        try (FileWriter writer = new FileWriter(filename)) {
-            writer.write(report);
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Raport");
-            alert.setHeaderText("Raport został wygenerowany");
-            alert.setContentText("Zapisano do pliku: " + filename);
-            alert.showAndWait();
-            logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") created new report");
+    private String createReportFromService() {
+        try {
+            String report = reportService.generateFullRaport();
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+            String filename = "raport_" + timestamp + ".md";
+
+            try (FileWriter writer = new FileWriter(filename)) {
+                writer.write(report);
+            }
+
+            return filename; // zwracamy nazwę pliku, żeby Controller pokazał alert
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            showError("Błąd,Nie udało się wygenerować raportu");
+            return null;
         }
     }
 
@@ -640,12 +570,10 @@ public class Controller extends Thread {
                     Integer.parseInt(ethField.getText()),
                     configField.getText()
                 );
-                new Thread(() -> deviceDAO.save(device)).start();
+                new Thread(() -> deviceService.addDevice(device)).start();
                 logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new device to database with ID: " + device.getId());
             } catch (NumberFormatException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setContentText("Invalid number format");
-                alert.showAndWait();
+                showError("Invalid number format");
                 logger.warning("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") tried to add new device to database but insert invalid number format");
             }
         });
@@ -660,7 +588,7 @@ public class Controller extends Thread {
         idResult.ifPresent(idStr -> {
             try {
                 long id = Long.parseLong(idStr);
-                Device device = deviceDAO.findByID(id);
+                Device device = deviceService.getDeviceById(id);
                 if (device != null) {
                     Dialog<String> configDialog = new Dialog<>();
                     configDialog.setTitle("Zmień konfigurację");
@@ -681,15 +609,12 @@ public class Controller extends Thread {
 
                     Optional<String> configResult = configDialog.showAndWait();
                     configResult.ifPresent(config -> {
-                        device.setConfiguration(config);
-                        deviceDAO.updateData(device);
+                        deviceService.updateConfiguration(id,config);
                         logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") change configuration of device with ID: " + device.getId());
                     });
                 }
             } catch (NumberFormatException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setContentText("Invalid ID");
-                alert.showAndWait();
+                showError("Invalid ID");
                 logger.warning("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") tried to change configuration of device but provided invalid ID");
             }
         });
@@ -704,7 +629,7 @@ public class Controller extends Thread {
         result.ifPresent(idStr -> {
             try {
                 long id = Long.parseLong(idStr);
-                new Thread(() -> deviceDAO.deleteByID(id)).start();
+                new Thread(() -> deviceService.deleteDevice(id)).start();
                 logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted device with ID: " + id);
             } catch (NumberFormatException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -721,7 +646,7 @@ public class Controller extends Thread {
         devices.append("BAZA URZĄDZEŃ\n");
         devices.append("===================\n\n");
 
-        for (Device device : deviceDAO.findAll()) {
+        for (Device device : deviceService.getAllDevices()) {
             devices.append("ID: ").append(device.getId()).append("\n");
             devices.append("Type: ").append(device.getType()).append("\n");
             devices.append("Status: ").append(device.getStatus()).append("\n");
@@ -732,10 +657,6 @@ public class Controller extends Thread {
             devices.append("-------------------\n");
         }
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Baza urządzeń");
-        alert.setHeaderText("Lista urządzeń");
-        alert.setContentText(devices.toString());
-        alert.showAndWait();
+        showInfo("Baza urządzeń","Lista urządzeń",devices.toString());
     }
 }
