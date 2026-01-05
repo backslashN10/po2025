@@ -1,4 +1,8 @@
-package pl.edu.agh.po;
+package pl.edu.agh.po.dao;
+
+import pl.edu.agh.po.model.Device;
+import pl.edu.agh.po.model.DeviceStatus;
+import pl.edu.agh.po.model.DeviceType;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

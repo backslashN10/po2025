@@ -1,4 +1,4 @@
-package pl.edu.agh.po;
+package pl.edu.agh.po.model;
 
 public enum DeviceType {
     ROUTER,

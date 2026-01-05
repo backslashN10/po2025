@@ -1,4 +1,4 @@
-package pl.edu.agh.po;
+package pl.edu.agh.po.controller;
 
 import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
 import com.google.zxing.BarcodeFormat;
@@ -35,9 +35,16 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import javafx.scene.input.Clipboard;
 import org.apache.commons.codec.binary.Base32;
+import pl.edu.agh.po.exceptions.UserAlreadyExistsException;
+import pl.edu.agh.po.model.*;
+import pl.edu.agh.po.service.AuthenticationService;
+import pl.edu.agh.po.service.DeviceService;
+import pl.edu.agh.po.service.ReportService;
+import pl.edu.agh.po.service.UserService;
+import pl.edu.agh.po.utilities.PasswordEncryption;
 
 
-public class Controller extends Thread {
+public class Controller{
 
     @FXML private VBox loginPanel;
     @FXML private TextField usernameField;
@@ -54,10 +61,10 @@ public class Controller extends Thread {
     @FXML private Label technicianRoleLabel;
     @FXML private Button loginButton;
 
+    private final DeviceService deviceService = new DeviceService();
     private final AuthenticationService authService = AuthenticationService.getInstance();
-    private final UserDAO userDAO = UserDAO.getInstance();
-    private final DeviceDAO deviceDAO = DeviceDAO.getInstance();
-    private final BusinessManager businessManager = BusinessManager.getInstance();
+    private final UserService userService = new UserService();
+    private final ReportService reportService = ReportService.getInstance();
     private static final Logger logger = Logger.getLogger(Controller.class.getName());
 
     @FXML
@@ -123,7 +130,7 @@ public class Controller extends Thread {
                     // Poprawny kod: zapisujemy stan użytkownika
                     user.setForceTotpSetup(false);
                     user.setTotpEnabled(true);
-                    userDAO.updateData(user);
+                    userService.update(user);
 
                     // Logowanie i pokazanie panelu
                     completeLogin(user);
@@ -163,7 +170,7 @@ public class Controller extends Thread {
 
                 user.setTotpSecret(base32Secret);
                 user.setTotpEnabled(false);
-                userDAO.updateData(user);
+                userService.update(user);
 
                 String otpAuthUrl =
                         "otpauth://totp/YourApp:" + user.getUsername() +
@@ -278,9 +285,14 @@ public class Controller extends Thread {
                 user.setPassword(PasswordEncryption.hash(newPassword));
                 user.setForcePasswordChange(false);
                 try {
-                    userDAO.updateData(user);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
+                    userService.update(user);
+                } catch (RuntimeException e) {
+                    Alert error = new Alert(Alert.AlertType.ERROR);
+                    error.setTitle("Error");
+                    error.setHeaderText("Failed to update password");
+                    error.setContentText(e.getMessage());
+                    error.showAndWait();
+                    return;
                 }
 
                 if (afterBootstrap || user.isForceTotpSetup()) {
@@ -382,7 +394,7 @@ public class Controller extends Thread {
                     String base32Secret = base32.encodeToString(secretKey.getEncoded()).replace("=", ""); // usuń padding
                     user.setTotpSecret(base32Secret);
                     user.setTotpEnabled(true);
-                    userDAO.updateData(user);
+                    userService.update(user);
 
                     // Generowanie URL do Google Authenticator
                     // Format: otpauth://totp/<issuer>:<account>?secret=<secret>&issuer=<issuer>&digits=6
@@ -505,7 +517,7 @@ public class Controller extends Thread {
 
             new Thread(() -> {
                 try {
-                    userDAO.save(newUser);
+                    userService.createUser(newUser);
 
                     Platform.runLater(() -> {
                         logger.info("User added: " + newUser.getUsername());
@@ -533,15 +545,28 @@ public class Controller extends Thread {
     @FXML
     private void handleBlockUser() {
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Usuń użytkownika");
+        dialog.setTitle("Delete user");
         dialog.setContentText("Username:");
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(username -> {
-            User user = userDAO.findByUsername(username);
-            if (user != null) {
-                new Thread(() -> userDAO.deleteByID(user.getId())).start();
-                logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted user with ID: " + user.getId());
+            try {
+                userService.deleteUserByUsername(username);
+                logger.info("User: " + authService.getCurrentUser().getUsername()
+                        + " (" + authService.getCurrentUser().getRole() + ") deleted user: " + username);
+
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Success");
+                alert.setHeaderText("User deleted");
+                alert.setContentText("User " + username + " was successfully deleted.");
+                alert.showAndWait();
+
+            } catch (RuntimeException e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Failed to delete user");
+                alert.setContentText(e.getMessage());
+                alert.showAndWait();
             }
         });
     }
@@ -549,7 +574,7 @@ public class Controller extends Thread {
     @FXML
     private void handleShowDatabase() {
         StringBuilder usersDB = new StringBuilder();
-        for (User user : userDAO.findALL()) {
+        for (User user : userService.getAllUsers()) {
             usersDB.append("ID: ").append(user.getId()).append("\n");
             usersDB.append("Username: ").append(user.getUsername()).append("\n");
             usersDB.append("Role: ").append(user.getRole()).append("\n");
@@ -566,7 +591,7 @@ public class Controller extends Thread {
 
     @FXML
     private void handleCreateReport() {
-        String report = businessManager.generateFullRaport();
+        String report = reportService.generateFullRaport();
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
         String filename = "raport_" + timestamp + ".md";
         try (FileWriter writer = new FileWriter(filename)) {
@@ -640,7 +665,7 @@ public class Controller extends Thread {
                     Integer.parseInt(ethField.getText()),
                     configField.getText()
                 );
-                new Thread(() -> deviceDAO.save(device)).start();
+                new Thread(() -> deviceService.addDevice(device)).start();
                 logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") added new device to database with ID: " + device.getId());
             } catch (NumberFormatException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -660,7 +685,7 @@ public class Controller extends Thread {
         idResult.ifPresent(idStr -> {
             try {
                 long id = Long.parseLong(idStr);
-                Device device = deviceDAO.findByID(id);
+                Device device = deviceService.getDeviceById(id);
                 if (device != null) {
                     Dialog<String> configDialog = new Dialog<>();
                     configDialog.setTitle("Zmień konfigurację");
@@ -681,8 +706,7 @@ public class Controller extends Thread {
 
                     Optional<String> configResult = configDialog.showAndWait();
                     configResult.ifPresent(config -> {
-                        device.setConfiguration(config);
-                        deviceDAO.updateData(device);
+                        deviceService.updateConfiguration(id,config);
                         logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") change configuration of device with ID: " + device.getId());
                     });
                 }
@@ -704,7 +728,7 @@ public class Controller extends Thread {
         result.ifPresent(idStr -> {
             try {
                 long id = Long.parseLong(idStr);
-                new Thread(() -> deviceDAO.deleteByID(id)).start();
+                new Thread(() -> deviceService.deleteDevice(id)).start();
                 logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted device with ID: " + id);
             } catch (NumberFormatException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -721,7 +745,7 @@ public class Controller extends Thread {
         devices.append("BAZA URZĄDZEŃ\n");
         devices.append("===================\n\n");
 
-        for (Device device : deviceDAO.findAll()) {
+        for (Device device : deviceService.getAllDevices()) {
             devices.append("ID: ").append(device.getId()).append("\n");
             devices.append("Type: ").append(device.getType()).append("\n");
             devices.append("Status: ").append(device.getStatus()).append("\n");

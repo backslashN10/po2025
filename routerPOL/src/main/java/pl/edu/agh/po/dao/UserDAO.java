@@ -1,6 +1,9 @@
-package pl.edu.agh.po;
+package pl.edu.agh.po.dao;
 
-import javafx.scene.control.Alert;
+import pl.edu.agh.po.utilities.PasswordEncryption;
+import pl.edu.agh.po.exceptions.UserAlreadyExistsException;
+import pl.edu.agh.po.model.User;
+import pl.edu.agh.po.model.UserRole;
 
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -194,11 +197,7 @@ public class UserDAO {
                 }
             }
         } catch (SQLException e) {
-            if (e.getMessage().contains("UNIQUE")) {
-                throw new UserAlreadyExistsException("User already exists", e);
-            }
             throw new RuntimeException(e);
-
         }
     }
 
@@ -207,12 +206,12 @@ public class UserDAO {
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, ID);
             pstmt.execute();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public void updateData(User user) throws SQLException {
+    public void updateData(User user) {
         String sql = "UPDATE users SET username = ?, password = ?, role = ?, bootstrap = ?, force_password_change = ?, totp_secret = ?, totp_enabled = ?,force_totp_setup = ? WHERE id = ?";
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                 pstmt.setString(1, user.getUsername());
@@ -226,8 +225,10 @@ public class UserDAO {
                 pstmt.setLong(9, user.getId());
 
                 pstmt.executeUpdate();
-            } catch (Exception e) {
-                e.printStackTrace();
+
+            }catch(SQLException e)
+            {
+                throw new RuntimeException(e);
             }
         }
     }

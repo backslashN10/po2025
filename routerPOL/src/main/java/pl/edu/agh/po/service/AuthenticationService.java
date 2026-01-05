@@ -1,4 +1,8 @@
-package pl.edu.agh.po;
+package pl.edu.agh.po.service;
+
+import pl.edu.agh.po.utilities.PasswordEncryption;
+import pl.edu.agh.po.dao.UserDAO;
+import pl.edu.agh.po.model.User;
 
 public class AuthenticationService{
     private static AuthenticationService instance;

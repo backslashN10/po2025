@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<StackPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.edu.agh.po.Controller">
+<StackPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.edu.agh.po.controller.Controller">
 
     <!-- PANEL LOGOWANIA -->
     <VBox fx:id="loginPanel" alignment="CENTER" spacing="15.0">
