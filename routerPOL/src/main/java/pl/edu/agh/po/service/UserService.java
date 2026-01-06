@@ -10,6 +10,14 @@ import java.util.List;
 public class UserService implements UserManager{
 
     private final UserDAO userDAO = UserDAO.getInstance();
+    private static UserService instance;
+
+    public static UserService getInstance(){
+        if (instance == null){
+            instance = new UserService();
+        }
+        return instance;
+    }
 
     public void createUser(User user) {
         try {

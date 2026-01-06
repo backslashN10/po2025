@@ -2,7 +2,6 @@ package pl.edu.agh.po.controller;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 
@@ -50,10 +49,10 @@ public class Controller{
     @FXML private Label technicianRoleLabel;
     @FXML private Button loginButton;
 
-    private final DeviceService deviceService = new DeviceService();
+    private final DeviceService deviceService = DeviceService.getInstance();
     private final AuthenticationService authService = AuthenticationService.getInstance();
-    private final UserService userService = new UserService();
-    private final TotpService totpService = new TotpService();
+    private final UserService userService = UserService.getInstance();
+    private final TotpService totpService = TotpService.getInstance();
     private final ReportService reportService = ReportService.getInstance();
     private static final Logger logger = Logger.getLogger(Controller.class.getName());
 

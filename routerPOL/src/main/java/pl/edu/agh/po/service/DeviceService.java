@@ -9,7 +9,14 @@ import java.util.List;
 public class DeviceService implements DeviceManager{
 
     private final DeviceDAO deviceDAO = DeviceDAO.getInstance();
+    private static DeviceService instance;
 
+    public static DeviceService getInstance(){
+        if (instance == null){
+            instance = new DeviceService();
+        }
+        return instance;
+    }
     public void addDevice(Device device) {
         deviceDAO.save(device);
     }

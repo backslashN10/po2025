@@ -15,6 +15,14 @@ import java.time.Instant;
 public class TotpService implements TotpManager
 {
     private final UserDAO userDAO = UserDAO.getInstance();
+    private static TotpService instance;
+
+    public static TotpService getInstance(){
+        if (instance == null){
+            instance = new TotpService();
+        }
+        return instance;
+    }
 
     public User setupBootstrap(User user, String newPassword) {
         user.setPassword(newPassword);
