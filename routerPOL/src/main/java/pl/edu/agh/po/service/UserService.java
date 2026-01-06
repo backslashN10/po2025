@@ -5,7 +5,9 @@ import pl.edu.agh.po.exceptions.UserAlreadyExistsException;
 import pl.edu.agh.po.model.User;
 
 import java.sql.SQLException;
-import java.util.List;
+import java.util.ArrayList;
+
+
 
 public class UserService implements UserManager{
 
@@ -43,7 +45,7 @@ public class UserService implements UserManager{
         }
     }
 
-    public List<User> getAllUsers() {
+    public ArrayList<User> getAllUsers() {
         return userDAO.findALL();
     }
 

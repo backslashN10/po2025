@@ -428,13 +428,7 @@ public class Controller{
                 } catch (UserAlreadyExistsException e) {
 
                     Platform.runLater(() -> {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("Błąd");
-                        alert.setHeaderText("Nie można dodać użytkownika");
-                        alert.setContentText(
-                                "Użytkownik o takiej nazwie już istnieje.\nWybierz inną nazwę."
-                        );
-                        alert.showAndWait();
+                        showWarning("Użytkownik o takiej nazwie już istnieje.\nWybierz inną nazwę.\"");
                     });
 
                 } catch (Exception e) {
@@ -631,9 +625,7 @@ public class Controller{
                 new Thread(() -> deviceService.deleteDevice(id)).start();
                 logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") deleted device with ID: " + id);
             } catch (NumberFormatException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setContentText("Invalid ID");
-                alert.showAndWait();
+                showError("Invalid ID");
                 logger.warning("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") tried to delet device but provided invalid ID");
             }
         });
