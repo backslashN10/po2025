@@ -10,6 +10,6 @@
 - [x] uzycie find by id, find by role dla userow
 - [x] ogarniecie unique constraint jak sie odpala
 - [x] fajnie jakby pokazywalo kto jest zalogowany
-- [ ] dodać skrypt pozwalający uzupełnić baze przykładowymi danymi
+- [x] dodać skrypt pozwalający uzupełnić baze przykładowymi danymi
 - [ ] rozwinac te raporty, miesieczne itd(wystarczy raport z bazy urzadzen)
 - [ ] ogarnac diagramy bo pokazuje klasy ktorych nie ma
