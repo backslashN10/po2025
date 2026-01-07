@@ -4,7 +4,6 @@ import pl.edu.agh.po.dao.DeviceDAO;
 import pl.edu.agh.po.model.Device;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class DeviceService implements DeviceManager{
 

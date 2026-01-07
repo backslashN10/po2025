@@ -95,7 +95,6 @@ public class Controller{
                 handleSuccessfulTotp(user);
             } else {
                 showError("Invalid code, The TOTP code is incorrect. Please try again.");
-                // retry
                 promptForTotpCode(user);
             }
         });
