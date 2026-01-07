@@ -9,10 +9,9 @@ import pl.edu.agh.po.model.AuthStatus;
 public class AuthenticationService{
     private static AuthenticationService instance;
     private User currentUser;
-    private UserDAO userDAO;
+    private final UserDAO userDAO = UserDAO.getInstance();
 
     private AuthenticationService(){
-        this.userDAO = UserDAO.getInstance();
         this.currentUser = null;
     }
     public static AuthenticationService getInstance(){
