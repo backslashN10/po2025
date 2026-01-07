@@ -79,6 +79,26 @@ public class UserDAO {
         }
     }
 
+    public void fillExampleData() {
+        String sql = """
+                INSERT INTO users (username, password, role, bootstrap, force_password_change, totp_secret, totp_enabled, force_totp_setup)
+                VALUES
+                    ('marcin', '%s', 'CEO', 0, 0, NULL, 0, 0),
+                    ('adam', '%s', 'TECHNICIAN', 0, 0, NULL, 0, 0),
+                    ('ewa', '%s', 'TECHNICIAN', 0, 0, NULL, 0, 0);
+                """.formatted(
+                PasswordEncryption.hash("marcin1"),
+                PasswordEncryption.hash("adam1"),
+                PasswordEncryption.hash("ewa1")
+        );
+
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public User findByUsername(String username) {
         String sql = "SELECT * FROM users WHERE username = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {

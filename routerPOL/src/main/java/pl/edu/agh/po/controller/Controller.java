@@ -48,6 +48,7 @@ public class Controller{
     @FXML private Label welcomeTechnicianLabel;
     @FXML private Label technicianRoleLabel;
     @FXML private Button loginButton;
+    @FXML private Button addExampleUsersButton;
 
     private final DeviceService deviceService = DeviceService.getInstance();
     private final AuthenticationService authService = AuthenticationService.getInstance();
@@ -649,5 +650,33 @@ public class Controller{
         }
 
         showInfo("Baza urządzeń","Lista urządzeń",devices.toString());
+    }
+
+    @FXML
+    private void handleAddExampleUsers() {
+        addExampleUsersButton.setDisable(true);
+        new Thread(() -> {
+            try {
+                pl.edu.agh.po.dao.UserDAO.getInstance().fillExampleData();
+                Platform.runLater(() -> {
+                    addExampleUsersButton.setDisable(false);
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    addExampleUsersButton.setDisable(false);
+                });
+            }
+        }).start();
+    }
+
+    @FXML
+    private void handleAddExampleDevices() {
+        new Thread(() -> {
+            try {
+                pl.edu.agh.po.dao.DeviceDAO.getInstance().fillExampleData();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 }

@@ -22,6 +22,8 @@
             <PasswordField fx:id="passwordField" />
             <Label fx:id="loginMessageLabel" />
             <Button fx:id="loginButton" maxWidth="Infinity" onAction="#handleLogin" text="Zaloguj się" />
+            <Button fx:id="addExampleUsersButton" maxWidth="Infinity" onAction="#handleAddExampleUsers" text="Dodaj przykładowych użytkowników" style="-fx-font-size: 10px;" />
+            <Button fx:id="addExampleDevices" maxWidth="Infinity" onAction="#handleAddExampleDevices" text="Dodaj przykładowe urządzenia" style="-fx-font-size: 10px;" />
         </VBox>
     </VBox>
 
@@ -82,6 +84,7 @@
             <Button maxWidth="Infinity" onAction="#handleChangeConfiguration" text="Zmień konfigurację" />
             <Button maxWidth="Infinity" onAction="#handleDeleteDevice" text="Usuń urządzenie" />
             <Button maxWidth="Infinity" onAction="#handleShowDevices" text="Pokaż bazę urządzeń" />
+            <Button maxWidth="Infinity" onAction="#handleAddExampleDevices" text="Dodaj przykładowe urządzenia" style="-fx-font-size: 11px;" />
             <Button maxWidth="Infinity" onAction="#handleLogout" text="Wyloguj" />
             <Button maxWidth="Infinity" onAction="#handleExit" text="Wyjście" />
         </VBox>
