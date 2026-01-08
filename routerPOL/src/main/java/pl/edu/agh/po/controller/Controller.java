@@ -7,12 +7,14 @@ import com.google.zxing.common.BitMatrix;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
 import javafx.geometry.Insets;
+import javafx.stage.Stage;
 import javafx.util.Pair;
 import javafx.embed.swing.SwingFXUtils;
 
@@ -459,17 +461,31 @@ public class Controller{
 
     @FXML
     private void handleShowDatabase() {
-        StringBuilder usersDB = new StringBuilder();
+        VBox vbox = new VBox(10);
+
         for (User user : userService.getAllUsers()) {
-            usersDB.append("ID: ").append(user.getId()).append("\n");
-            usersDB.append("Username: ").append(user.getUsername()).append("\n");
-            usersDB.append("Role: ").append(user.getRole()).append("\n");
-            usersDB.append("-------------------\n");
+            Label userLabel = new Label(
+                    "ID: " + user.getId() +
+                            " | Username: " + user.getUsername() +
+                            " | Role: " + user.getRole()
+            );
+
+            vbox.getChildren().add(userLabel);
         }
 
-        showInfo("Baza użytkowników","Lista użytkowników",usersDB.toString());
-        logger.info("user: " + authService.getCurrentUser().getUsername() + " (" + authService.getCurrentUser().getRole() + ") looked at database");
+        ScrollPane scrollPane = new ScrollPane(vbox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefSize(400, 400); // ustawiamy rozmiar okna
+
+        Stage stage = new Stage();
+        stage.setTitle("Baza użytkowników");
+        stage.setScene(new Scene(scrollPane));
+        stage.show();
+
+        logger.info("user: " + authService.getCurrentUser().getUsername() +
+                " (" + authService.getCurrentUser().getRole() + ") looked at database");
     }
+
     private void showInfo(String title, String header, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -633,23 +649,35 @@ public class Controller{
 
     @FXML
     private void handleShowDevices() {
-        StringBuilder devices = new StringBuilder();
-        devices.append("BAZA URZĄDZEŃ\n");
-        devices.append("===================\n\n");
+        VBox vbox = new VBox(10);
 
         for (Device device : deviceService.getAllDevices()) {
-            devices.append("ID: ").append(device.getId()).append("\n");
-            devices.append("Type: ").append(device.getType()).append("\n");
-            devices.append("Status: ").append(device.getStatus()).append("\n");
-            devices.append("Model: ").append(device.getModel()).append("\n");
-            devices.append("Hostname: ").append(device.getHostName()).append("\n");
-            devices.append("Ethernet Interfaces: ").append(device.getNumberOfEthernetInterfaces()).append("\n");
-            devices.append("Configuration: ").append(device.getConfiguration()).append("\n");
-            devices.append("-------------------\n");
+            Label deviceLabel = new Label(
+                    device.getType() + " - " +
+                            device.getModel() + " - " +
+                            device.getHostName() + " (" +
+                            device.getStatus() + ")"
+            );
+
+            TextArea configArea = new TextArea(device.getConfiguration());
+            configArea.setEditable(false);
+            configArea.setWrapText(false);
+            configArea.setPrefWidth(600);
+            configArea.setPrefHeight(200); // ograniczenie wysokości
+
+            vbox.getChildren().addAll(deviceLabel, configArea);
         }
 
-        showInfo("Baza urządzeń","Lista urządzeń",devices.toString());
+        ScrollPane scrollPane = new ScrollPane(vbox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefSize(650, 500);
+
+        Stage stage = new Stage();
+        stage.setTitle("Baza urządzeń");
+        stage.setScene(new Scene(scrollPane));
+        stage.show();
     }
+
 
     @FXML
     private void handleAddExampleUsers() {
